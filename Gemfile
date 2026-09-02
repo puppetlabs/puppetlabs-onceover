@@ -4,7 +4,7 @@ gemspec
 
 gem 'pry-coolline', '> 0.0', '< 1.0.0'
 
-gem 'openvox', ENV['PUPPET_VERSION'] || '~> 8'
+gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 8'
 
 group :test do
   # Required for the final controlrepo tests
