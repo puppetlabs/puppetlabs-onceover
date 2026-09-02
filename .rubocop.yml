@@ -11,3 +11,9 @@ AllCops:
     - vendor/**/*
     - .vendor/**/*
     - spec/fixtures/**/*
+
+# .gitattributes forces LF line endings everywhere, including Windows.
+# The default EnforcedStyle is "native", which demands CRLF on Windows --
+# that's incompatible with this repo's own LF-everywhere policy.
+Layout/EndOfLine:
+  EnforcedStyle: lf
