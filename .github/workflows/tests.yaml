@@ -51,6 +51,7 @@ jobs:
       - name: Set long paths on Windows
         if: ${{ matrix.os == 'windows-latest' }}
         run: Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -value 1
+        git config --global core.longpaths true
       - env:
           PUPPET_VERSION: ${{ matrix.puppet }}
         run: bundle exec rake full_tests
