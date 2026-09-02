@@ -1,0 +1,50 @@
+name: "nightly"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  spec:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby_version:
+          - "3.2"
+        include:
+          - ruby_version: "3.2"
+            puppet_gem_version: "~> 8.0"
+        runs_on:
+          - "ubuntu-latest"
+          - "macos-latest"
+          - "ubuntu-24.04-arm"
+    # See ci.yml's spec-windows job for why windows-latest isn't in this matrix.
+    name: "spec (${{ matrix.runs_on }} ruby ${{ matrix.ruby_version }} | puppet ${{ matrix.puppet_gem_version }})"
+    uses: "puppetlabs/cat-github-actions/.github/workflows/gem_ci.yml@main"
+    secrets: "inherit"
+    with:
+      rake_task: "full_tests"
+      ruby_version: ${{ matrix.ruby_version }}
+      puppet_gem_version: ${{ matrix.puppet_gem_version }}
+      runs_on: ${{ matrix.runs_on }}
+
+  spec-windows:
+    name: "spec (windows-latest ruby 3.2 | puppet ~> 8.0)"
+    runs-on: "windows-latest"
+    env:
+      PUPPET_GEM_VERSION: "~> 8.0"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "ruby/setup-ruby@v1"
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - name: "Enable Windows long paths"
+        run: |
+          Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -value 1
+          git config --global core.longpaths true
+      - name: "rubocop"
+        run: bundle exec rubocop --format github
+      - name: "spec"
+        run: bundle exec rake full_tests

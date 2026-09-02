@@ -1,0 +1,68 @@
+name: "ci"
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+env:
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+jobs:
+  spec:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby_version:
+          - "3.2"
+        include:
+          - ruby_version: "3.2"
+            puppet_gem_version: "~> 8.0"
+        runs_on:
+          - "ubuntu-latest"
+          - "macos-latest"
+          - "ubuntu-24.04-arm"
+    # NOTE: no ruby 4.0 / puppet 9.0 lane yet -- the gemspec/Gemfile still
+    # hard-depend on openvox regardless of puppet_gem_version until CAT-2776
+    # flips the runtime dependency to puppet. Add that lane there, not here.
+    # NOTE: windows-latest is a separate, bespoke job below, not part of this
+    # matrix -- see that job for why.
+    name: "spec (${{ matrix.runs_on }} ruby ${{ matrix.ruby_version }} | puppet ${{ matrix.puppet_gem_version }})"
+    uses: "puppetlabs/cat-github-actions/.github/workflows/gem_ci.yml@main"
+    secrets: "inherit"
+    with:
+      rake_task: "full_tests"
+      ruby_version: ${{ matrix.ruby_version }}
+      puppet_gem_version: ${{ matrix.puppet_gem_version }}
+      runs_on: ${{ matrix.runs_on }}
+
+  spec-windows:
+    # windows-latest can't use the shared gem_ci.yml: that reusable workflow
+    # does its own checkout internally, with no hook to set the long-paths
+    # registry key before r10k's test fixtures get cloned into a deeply
+    # nested temp path. This repo's own fixtures (e.g. puppetlabs-cron_core's
+    # acceptance specs) are long enough that D:/a/puppetlabs-onceover/puppetlabs-onceover/...
+    # crosses Windows' 260-char MAX_PATH without it -- confirmed by
+    # reproduction, not assumed.
+    name: "spec (windows-latest ruby 3.2 | puppet ~> 8.0)"
+    runs-on: "windows-latest"
+    env:
+      PUPPET_GEM_VERSION: "~> 8.0"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "ruby/setup-ruby@v1"
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - name: "Enable Windows long paths"
+        run: |
+          Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -value 1
+          git config --global core.longpaths true
+      - name: "rubocop"
+        run: bundle exec rubocop --format github
+      - name: "spec"
+        run: bundle exec rake full_tests
