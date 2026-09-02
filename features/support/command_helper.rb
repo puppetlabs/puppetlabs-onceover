@@ -6,7 +6,7 @@ class Command_Helper
   attr_writer(:command, :params, :controlrepo)
 
   def initialize
-    @executable = ENV["BUNDLE_GEMFILE"] ? "bundle exec onceover" : "onceover"
+    @executable = ENV["BUNDLE_GEMFILE"] ? "bundle exec puppetlabs-onceover" : "puppetlabs-onceover"
   end
 
   def run

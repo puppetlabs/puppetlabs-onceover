@@ -3,11 +3,11 @@
 $LOAD_PATH.unshift File.expand_path('lib', __dir__)
 
 Gem::Specification.new do |s| # rubocop:disable Gemspec/RequireMFA
-  s.name        = "onceover"
-  s.version     = "5.0.2"
-  s.authors     = ["Dylan Ratcliffe", 'Vox Pupuli']
-  s.email       = ["voxpupuli@groups.io"]
-  s.homepage    = "https://github.com/voxpupuli/onceover"
+  s.name        = "puppetlabs-onceover"
+  s.version     = "5.0.3"
+  s.authors     = ['Puppet, Inc.']
+  s.email       = ['modules-team@puppet.com']
+  s.homepage    = "https://github.com/puppetlabs/puppetlabs-onceover"
   s.summary     = "Testing tools for Puppet controlrepos"
   s.description = "Automatically generates tests for your Puppet code"
   s.licenses    = 'Apache-2.0'
@@ -15,7 +15,7 @@ Gem::Specification.new do |s| # rubocop:disable Gemspec/RequireMFA
   s.files       = `git ls-files`.split("\n")
   #s.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.bindir       = 'bin'
-  s.executables  = 'onceover'
+  s.executables  = 'puppetlabs-onceover'
 
   s.required_ruby_version = Gem::Requirement.new('>= 3.2')
 
