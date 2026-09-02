@@ -12,10 +12,8 @@ Gem::Specification.new do |s| # rubocop:disable Gemspec/RequireMFA
   s.description = "Automatically generates tests for your Puppet code"
   s.licenses    = 'Apache-2.0'
 
-  s.files       = `git ls-files`.split("
-")
-  #s.test_files  = `git ls-files -- {test,spec,features}/*`.split("
-")
+  s.files       = `git ls-files`.split("\n")
+  #s.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.bindir       = 'bin'
   s.executables  = 'puppetlabs-onceover'
 
