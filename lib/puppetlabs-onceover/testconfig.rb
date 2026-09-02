@@ -1,13 +1,13 @@
-require 'onceover/class'
-require 'onceover/node'
-require 'onceover/group'
-require 'onceover/test'
-require 'onceover/logger'
-require 'onceover/controlrepo'
+require 'puppetlabs-onceover/class'
+require 'puppetlabs-onceover/node'
+require 'puppetlabs-onceover/group'
+require 'puppetlabs-onceover/test'
+require 'puppetlabs-onceover/logger'
+require 'puppetlabs-onceover/controlrepo'
 require 'git'
-include Onceover::Logger
+include PuppetlabsOnceover::Logger
 
-class Onceover
+class PuppetlabsOnceover
   class TestConfig
     require 'yaml'
 
@@ -55,29 +55,29 @@ class Onceover
       
       # Set dynamic defaults for format
       if Array(opts[:format]) == [:defaults]
-        @formatters = opts[:parallel] ? ['OnceoverFormatterParallel'] : ['OnceoverFormatter']
+        @formatters = opts[:parallel] ? ['PuppetlabsOnceoverFormatterParallel'] : ['PuppetlabsOnceoverFormatter']
       else
         @formatters = Array(opts[:format])
       end
 
       # Initialise all of the classes and nodes
-      config['classes'].each { |clarse| Onceover::Class.new(clarse) } unless config['classes'] == nil
-      @classes = Onceover::Class.all
+      config['classes'].each { |clarse| PuppetlabsOnceover::Class.new(clarse) } unless config['classes'] == nil
+      @classes = PuppetlabsOnceover::Class.all
 
-      config['nodes'].each { |node| Onceover::Node.new(node) } unless config['nodes'] == nil
-      @nodes = Onceover::Node.all
+      config['nodes'].each { |node| PuppetlabsOnceover::Node.new(node) } unless config['nodes'] == nil
+      @nodes = PuppetlabsOnceover::Node.all
 
       # Add the 'all_classes' and 'all_nodes' default groups
-      @node_groups  << Onceover::Group.new('all_nodes', @nodes)
-      @class_groups << Onceover::Group.new('all_classes', @classes)
+      @node_groups  << PuppetlabsOnceover::Group.new('all_nodes', @nodes)
+      @class_groups << PuppetlabsOnceover::Group.new('all_classes', @classes)
 
       # Initialise all of the groups
-      config['node_groups'].each { |name, members| @node_groups << Onceover::Group.new(name, members) } unless config['node_groups'] == nil
-      config['class_groups'].each { |name, members| @class_groups << Onceover::Group.new(name, members) } unless config['class_groups'] == nil
+      config['node_groups'].each { |name, members| @node_groups << PuppetlabsOnceover::Group.new(name, members) } unless config['node_groups'] == nil
+      config['class_groups'].each { |name, members| @class_groups << PuppetlabsOnceover::Group.new(name, members) } unless config['class_groups'] == nil
 
       @filter_tags    = opts[:tags]      ? [opts[:tags].split(',')].flatten : nil
-      @filter_classes = opts[:classes]   ? [opts[:classes].split(',')].flatten.map {|x| Onceover::Class.find(x)} : nil
-      @filter_nodes   = opts[:nodes]     ? [opts[:nodes].split(',')].flatten.map {|x| Onceover::Node.find(x)} : nil
+      @filter_classes = opts[:classes]   ? [opts[:classes].split(',')].flatten.map {|x| PuppetlabsOnceover::Class.find(x)} : nil
+      @filter_nodes   = opts[:nodes]     ? [opts[:nodes].split(',')].flatten.map {|x| PuppetlabsOnceover::Node.find(x)} : nil
       @skip_r10k      = opts[:skip_r10k] ? true : false
       @force          = opts[:force] || false
       @fail_fast      = opts[:fail_fast] || false
@@ -92,11 +92,11 @@ class Onceover
       config['test_matrix'].each do |test_hash|
         test_hash.each do |machines, settings|
           if settings['tests'] == 'spec'
-            @spec_tests << Onceover::Test.new(machines, settings['classes'], settings)
+            @spec_tests << PuppetlabsOnceover::Test.new(machines, settings['classes'], settings)
           elsif settings['tests'] == 'acceptance'
-            @acceptance_tests << Onceover::Test.new(machines, settings['classes'], settings)
+            @acceptance_tests << PuppetlabsOnceover::Test.new(machines, settings['classes'], settings)
           elsif settings['tests'] == 'all_tests'
-            tst = Onceover::Test.new(machines,settings['classes'],settings)
+            tst = PuppetlabsOnceover::Test.new(machines,settings['classes'],settings)
             @spec_tests << tst
             @acceptance_tests << tst
           end
@@ -122,15 +122,15 @@ class Onceover
       # We want to supress warnings for this bit
       old_level = logger.level
       logger.level = :error
-      if Onceover::Group.find(thing)
+      if PuppetlabsOnceover::Group.find(thing)
         logger.level = old_level
-        return Onceover::Group.find(thing).members
-      elsif Onceover::Class.find(thing)
+        return PuppetlabsOnceover::Group.find(thing).members
+      elsif PuppetlabsOnceover::Class.find(thing)
         logger.level = old_level
-        return [Onceover::Class.find(thing)]
-      elsif Onceover::Node.find(thing)
+        return [PuppetlabsOnceover::Class.find(thing)]
+      elsif PuppetlabsOnceover::Node.find(thing)
         logger.level = old_level
-        return [Onceover::Node.find(thing)]
+        return [PuppetlabsOnceover::Node.find(thing)]
       else
         logger.level = old_level
         raise "Could not find #{thing} in list of classes, nodes or groups"
@@ -143,8 +143,8 @@ class Onceover
       #   'exclude' => 'other'}
       # and return a list of classes/nodes
       if subtractive_hash.has_key?('include') && subtractive_hash.has_key?('exclude')
-        include_list = Onceover::TestConfig.find_list(subtractive_hash['include']).flatten
-        exclude_list = Onceover::TestConfig.find_list(subtractive_hash['exclude']).flatten
+        include_list = PuppetlabsOnceover::TestConfig.find_list(subtractive_hash['include']).flatten
+        exclude_list = PuppetlabsOnceover::TestConfig.find_list(subtractive_hash['exclude']).flatten
         include_list - exclude_list
       else
         raise "The classes/nodes hash must have an `exclude` if using an `include`"
@@ -173,7 +173,7 @@ class Onceover
 
     def pre_condition
       # Read all the pre_conditions and return the string
-      spec_dir = Onceover::Controlrepo.new(@opts).spec_dir
+      spec_dir = PuppetlabsOnceover::Controlrepo.new(@opts).spec_dir
       puppetcode = []
       Dir["#{spec_dir}/pre_conditions/*.pp"].each do |condition_file|
         logger.debug "Reading pre_conditions from #{condition_file}"
@@ -188,7 +188,7 @@ class Onceover
       # Use an ERB template to write a spec test
       File.write(
         "#{location}/#{test.to_s}_spec.rb",
-        Onceover::Controlrepo.evaluate_template('test_spec.rb.erb', binding)
+        PuppetlabsOnceover::Controlrepo.evaluate_template('test_spec.rb.erb', binding)
       )
     end
 
@@ -197,20 +197,20 @@ class Onceover
 
       File.write(
         "#{location}/acceptance_spec.rb",
-        Onceover::Controlrepo.evaluate_template('acceptance_test_spec.rb.erb', binding))
+        PuppetlabsOnceover::Controlrepo.evaluate_template('acceptance_test_spec.rb.erb', binding))
     end
 
     def write_spec_helper_acceptance(location, repo)
       File.write(
         "#{location}/spec_helper_acceptance.rb",
-        Onceover::Controlrepo.evaluate_template('spec_helper_acceptance.rb.erb', binding)
+        PuppetlabsOnceover::Controlrepo.evaluate_template('spec_helper_acceptance.rb.erb', binding)
       )
     end
 
     def write_rakefile(location, pattern)
       File.write(
         "#{location}/Rakefile",
-        Onceover::Controlrepo.evaluate_template('testconfig_Rakefile.erb', binding)
+        PuppetlabsOnceover::Controlrepo.evaluate_template('testconfig_Rakefile.erb', binding)
       )
     end
 
@@ -235,7 +235,7 @@ class Onceover
       # Use an ERB template to write a spec test
       File.write(
         "#{location}/spec_helper.rb",
-        Onceover::Controlrepo.evaluate_template('spec_helper.rb.erb', binding)
+        PuppetlabsOnceover::Controlrepo.evaluate_template('spec_helper.rb.erb', binding)
       )
     end
 

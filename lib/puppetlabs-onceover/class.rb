@@ -1,4 +1,4 @@
-class Onceover
+class PuppetlabsOnceover
   class Class
     @@all = []
 
@@ -7,11 +7,11 @@ class Onceover
     def initialize(name)
       # if the class we are trying to create is a regex, create class objects
       # for everything that matches.
-      if Onceover::Class.name_is_regexp?(name)
-        expression = Onceover::Class.string_to_regexp(name)
-        matched_classes = Onceover::Controlrepo.classes.keep_if { |c| c =~ expression }
+      if PuppetlabsOnceover::Class.name_is_regexp?(name)
+        expression = PuppetlabsOnceover::Class.string_to_regexp(name)
+        matched_classes = PuppetlabsOnceover::Controlrepo.classes.keep_if { |c| c =~ expression }
         matched_classes.each do |c|
-          Onceover::Class.new(c)
+          PuppetlabsOnceover::Class.new(c)
         end
       else
         @name = name
@@ -22,9 +22,9 @@ class Onceover
     # This is what is executed to see if something exists as a class. The same
     # thing is executed for groups etc. when building up test matricies.
     def self.find(class_name)
-      if Onceover::Class.name_is_regexp?(class_name)
+      if PuppetlabsOnceover::Class.name_is_regexp?(class_name)
         return @@all.select do |cls|
-          cls.name =~ Onceover::Class.string_to_regexp(class_name)
+          cls.name =~ PuppetlabsOnceover::Class.string_to_regexp(class_name)
         end
       else
         @@all.each do |cls|
@@ -42,7 +42,7 @@ class Onceover
     end
 
     def self.string_to_regexp(string)
-      if Onceover::Class.name_is_regexp?(string)
+      if PuppetlabsOnceover::Class.name_is_regexp?(string)
         Regexp.new(string[1..-2])
       else
         raise "#{string} does not start and end with / and cannot be converted to regexp"

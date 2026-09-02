@@ -1,4 +1,4 @@
-require 'onceover/controlrepo'
+require 'puppetlabs-onceover/controlrepo'
 require 'pathname'
 require 'voxpupuli/test/rake'
 
@@ -7,7 +7,7 @@ require 'voxpupuli/test/rake'
 
 desc 'Writes a `fixtures.yml` file based on the Puppetfile'
 task :generate_fixtures do
-  repo = Onceover::Controlrepo.new
+  repo = PuppetlabsOnceover::Controlrepo.new
   if File.exist?(File.expand_path('./.fixtures.yml', repo.root))
     raise ".fixtures.yml already exits, we won't overwrite because we are scared"
   end
@@ -17,7 +17,7 @@ end
 
 desc "Modifies your `hiera.yaml` to point at the hieradata relative to its position."
 task :hiera_setup do
-  repo = Onceover::Controlrepo.new
+  repo = PuppetlabsOnceover::Controlrepo.new
   current_config = repo.hiera_config
   current_config.each do |key, value|
     if value.is_a?(Hash)
@@ -32,13 +32,13 @@ task :hiera_setup do
 end
 
 task :controlrepo_details do
-  require 'onceover/controlrepo'
-  puts Onceover::Controlrepo.new.to_s
+  require 'puppetlabs-onceover/controlrepo'
+  puts PuppetlabsOnceover::Controlrepo.new.to_s
 end
 
 task :generate_onceover_yaml do
-  require 'onceover/controlrepo'
-  repo = Onceover::Controlrepo.new
+  require 'puppetlabs-onceover/controlrepo'
+  repo = PuppetlabsOnceover::Controlrepo.new
   template_dir = File.expand_path('../../templates', File.dirname(__FILE__))
   onceover_yaml_template = File.read(File.expand_path('./controlrepo.yaml.erb', template_dir))
   puts ERB.new(onceover_yaml_template, nil, '-').result(binding)
@@ -47,18 +47,18 @@ end
 task :generate_nodesets do
   warn "[DEPRECATION] #{__method__} is deprecated due to the removal of Beaker"
 
-  require 'onceover/beaker'
+  require 'puppetlabs-onceover/beaker'
   require 'net/http'
   require 'multi_json'
 
-  repo = Onceover::Controlrepo.new
+  repo = PuppetlabsOnceover::Controlrepo.new
 
   puts "HOSTS:"
 
   repo.facts.each do |fact_set|
     node_name = File.basename(repo.facts_files[repo.facts.index(fact_set)], '.json')
-    boxname   = Onceover::Beaker.facts_to_vagrant_box(fact_set)
-    platform  = Onceover::Beaker.facts_to_platform(fact_set)
+    boxname   = PuppetlabsOnceover::Beaker.facts_to_vagrant_box(fact_set)
+    platform  = PuppetlabsOnceover::Beaker.facts_to_platform(fact_set)
 
     uri = URI("https://atlas.hashicorp.com:443/api/v1/box/#{boxname}")
     request = Net::HTTP.new(uri.host, uri.port)
@@ -88,9 +88,9 @@ end
 
 desc 'Create cache for vendored modules'
 task :generate_vendor_cache do
-  require 'onceover/controlrepo'
-  require 'onceover/vendored_modules'
+  require 'puppetlabs-onceover/controlrepo'
+  require 'puppetlabs-onceover/vendored_modules'
 
-  repo = Onceover::Controlrepo.new(debug: true)
-  Onceover::VendoredModules.new({ repo: repo, cachedir: File.join(repo.spec_dir, 'vendored_modules'), force_update: true })
+  repo = PuppetlabsOnceover::Controlrepo.new(debug: true)
+  PuppetlabsOnceover::VendoredModules.new({ repo: repo, cachedir: File.join(repo.spec_dir, 'vendored_modules'), force_update: true })
 end

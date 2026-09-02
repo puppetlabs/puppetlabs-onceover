@@ -1,6 +1,6 @@
 require 'cri'
 
-class Onceover
+class PuppetlabsOnceover
   class CLI
     def self.command
       @command ||= Cri::Command.define do
@@ -35,13 +35,13 @@ class Onceover
     end
 
     # Add the help
-    Onceover::CLI.command.add_command(Cri::Command.new_basic_help)
+    PuppetlabsOnceover::CLI.command.add_command(Cri::Command.new_basic_help)
   end
 end
 
 # Add all of the other CLI components
-require 'onceover/cli/show'
-require 'onceover/cli/run'
-require 'onceover/cli/init'
-require 'onceover/cli/update'
-require 'onceover/cli/plugins'
+require 'puppetlabs-onceover/cli/show'
+require 'puppetlabs-onceover/cli/run'
+require 'puppetlabs-onceover/cli/init'
+require 'puppetlabs-onceover/cli/update'
+require 'puppetlabs-onceover/cli/plugins'

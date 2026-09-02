@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'onceover/controlrepo'
+require 'puppetlabs-onceover/controlrepo'
 
-describe "Onceover::Controlrepo" do
+describe "PuppetlabsOnceover::Controlrepo" do
   context "in a barebones controlrepo" do
     before do
-      @repo = Onceover::Controlrepo.new(
+      @repo = PuppetlabsOnceover::Controlrepo.new(
         {
           path: 'spec/fixtures/controlrepos/minimal'
         }

@@ -204,7 +204,7 @@ Hopefully this config file will be fairly self explanatory once you see it, but 
 
     Default: `{}`
 
-    This setting overrides defaults for the `Onceover::Controlrepo` class' `opts` hash.
+    This setting overrides defaults for the `PuppetlabsOnceover::Controlrepo` class' `opts` hash.
 
     Example:
 
@@ -744,10 +744,10 @@ If you would like to use `onceover.yaml` to manage which tests you want to run, 
 ```ruby
 # spec/classes/role_spec.rb
 require 'spec_helper'
-require 'onceover/controlrepo'
+require 'puppetlabs-onceover/controlrepo'
 require 'helpers/shared_examples'
 
-Onceover::Controlrepo.new.spec_tests do |class_name, node_name, facts, trusted_facts, trusted_external_data, pre_conditions|
+PuppetlabsOnceover::Controlrepo.new.spec_tests do |class_name, node_name, facts, trusted_facts, trusted_external_data, pre_conditions|
   describe class_name do
     context "on #{node_name}" do
       let(:facts) { facts }
@@ -767,10 +767,10 @@ This will use the `soe` [shared example](https://web.archive.org/web/20220319011
 
 ### Accessing fact sets in a traditional RSpec test
 
-We can access all of our fact sets using `Onceover::Controlrepo.facts`. Normally it would be implemented something like this:
+We can access all of our fact sets using `PuppetlabsOnceover::Controlrepo.facts`. Normally it would be implemented something like this:
 
 ```ruby
-Onceover::Controlrepo.facts.each do |facts|
+PuppetlabsOnceover::Controlrepo.facts.each do |facts|
   context "on #{facts['fqdn']}" do
     let(:facts) { facts }
     it { should compile }
@@ -784,10 +784,10 @@ The following code will test all roles that onceover can find (ignoring the ones
 
 ```ruby
 require 'spec_helper'
-require 'onceover/controlrepo'
-Onceover::Controlrepo.roles.each do |role|
+require 'puppetlabs-onceover/controlrepo'
+PuppetlabsOnceover::Controlrepo.roles.each do |role|
   describe role do
-    Onceover::Controlrepo.facts.each do |facts|
+    PuppetlabsOnceover::Controlrepo.facts.each do |facts|
       context "on #{facts['fqdn']}" do
         let(:facts) { facts }
         it { should compile }
@@ -803,10 +803,10 @@ The same can also be done with profiles just by using the profiles method instea
 
 ```ruby
 require 'spec_helper'
-require 'onceover'
-Onceover::Controlrepo.profiles.each do |profile|
+require 'puppetlabs-onceover'
+PuppetlabsOnceover::Controlrepo.profiles.each do |profile|
   describe profile do
-    Onceover::Controlrepo.facts.each do |facts|
+    PuppetlabsOnceover::Controlrepo.facts.each do |facts|
       context "on #{facts['fqdn']}" do
         let(:facts) { facts }
         it { should compile }
@@ -828,10 +828,10 @@ Just pass a hash to the `facts` method and it will return only the fact sets wit
 
 ```ruby
 require 'spec_helper'
-require 'onceover'
+require 'puppetlabs-onceover'
 
 describe 'profile::windows_appserver' do
-  Onceover::Controlrepo.facts({
+  PuppetlabsOnceover::Controlrepo.facts({
     'kernel' => 'windows'
     }).each do |facts|
     context "on #{facts['fqdn']}" do
@@ -847,12 +847,12 @@ end
 You can modify the regexes that the gem uses to filter classes that it finds into roles and profiles. Just set up a Controlrepo object and pass regexes to the below settings.
 
 ```ruby
-repo = Onceover::Controlrepo.new()
+repo = PuppetlabsOnceover::Controlrepo.new()
 repo.role_regex = /.*/ # Tells the class how to find roles, will be applied to repo.classes
 repo.profile_regex = /.*/ # Tells the class how to find profiles, will be applied to repo.classes
 ```
 
-Note that you will need to call the `roles` and `profiles` methods on the object you just instantiated, not the main class e.g. `repo.roles` not Onceover::Controlrepo.roles
+Note that you will need to call the `roles` and `profiles` methods on the object you just instantiated, not the main class e.g. `repo.roles` not PuppetlabsOnceover::Controlrepo.roles
 
 ### Ruby Warnings
 
@@ -869,7 +869,7 @@ It is also worth noting if you want to use `RUBYOPT` for some other reason when 
 I have included a couple of little rake tasks to help get you started with testing your control repos. Set them up by adding this to your `Rakefile`
 
 ```ruby
-require 'onceover/rake_tasks'
+require 'puppetlabs-onceover/rake_tasks'
 ```
 
 The tasks are as follows:

@@ -1,4 +1,4 @@
-class Onceover
+class PuppetlabsOnceover
   class Test
     @@all =[]
 
@@ -31,10 +31,10 @@ class Onceover
       @tags = @test_config['tags']
 
       # Get the nodes we are working on
-      if Onceover::Group.find(on_this)
-        @nodes << Onceover::Group.find(on_this).members
-      elsif Onceover::Node.find(on_this)
-        @nodes << Onceover::Node.find(on_this)
+      if PuppetlabsOnceover::Group.find(on_this)
+        @nodes << PuppetlabsOnceover::Group.find(on_this).members
+      elsif PuppetlabsOnceover::Node.find(on_this)
+        @nodes << PuppetlabsOnceover::Node.find(on_this)
       else
         raise "#{on_this} was not found in the list of nodes or groups!"
       end
@@ -42,21 +42,21 @@ class Onceover
       @nodes.flatten!
 
       # Check that our nodes list contains only nodes
-      raise "#{@nodes} contained a non-node object." unless @nodes.all? { |item| item.is_a?(Onceover::Node) }
+      raise "#{@nodes} contained a non-node object." unless @nodes.all? { |item| item.is_a?(PuppetlabsOnceover::Node) }
 
       if test_this.is_a?(String)
         # If we have just given a string then grab all the classes it corresponds to
-        if Onceover::Group.find(test_this)
-          @classes << Onceover::Group.find(test_this).members
-        elsif Onceover::Class.find(test_this)
-          @classes << Onceover::Class.find(test_this)
+        if PuppetlabsOnceover::Group.find(test_this)
+          @classes << PuppetlabsOnceover::Group.find(test_this).members
+        elsif PuppetlabsOnceover::Class.find(test_this)
+          @classes << PuppetlabsOnceover::Class.find(test_this)
         else
           raise "#{test_this} was not found in the list of classes or groups!"
         end
         @classes.flatten!
       elsif test_this.is_a?(Hash)
-        @classes = Onceover::TestConfig.subtractive_to_list(test_this)
-      elsif test_this.is_a?(Onceover::Class)
+        @classes = PuppetlabsOnceover::TestConfig.subtractive_to_list(test_this)
+      elsif test_this.is_a?(PuppetlabsOnceover::Class)
         @classes << test_this
       end
     end
@@ -111,7 +111,7 @@ class Onceover
               relevant_test.test_config.deep_merge!(test.test_config)
             else
               combinations << combo
-              new_tests << Onceover::Test.new(node, cls, test.test_config)
+              new_tests << PuppetlabsOnceover::Test.new(node, cls, test.test_config)
             end
           end
         end

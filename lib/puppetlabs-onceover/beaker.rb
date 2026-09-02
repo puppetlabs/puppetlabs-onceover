@@ -1,7 +1,7 @@
 # rubocop:disable Style/RescueStandardError
 # ^^ I canlt be bothered fixing this because all of this code is deprecated
 
-class Onceover
+class PuppetlabsOnceover
   class Beaker
     # WARNING: All of this functionality is deprecated. It will be left around
     # until there is something to replace it, but don't rely on it
@@ -106,11 +106,11 @@ class Onceover
     end
 
     # This little method will deploy a Controlrepo object to a host, just using r10k deploy
-    def self.deploy_controlrepo_on(host, repo = Onceover::Controlrepo.new())
+    def self.deploy_controlrepo_on(host, repo = PuppetlabsOnceover::Controlrepo.new())
       warn "[DEPRECATION] #{__method__} is deprecated due to the removal of Beaker"
 
       require 'beaker-rspec'
-      require 'onceover/controlrepo'
+      require 'puppetlabs-onceover/controlrepo'
 
       if host.is_a?(Array)
         hosts.each do |single_host|
@@ -144,7 +144,7 @@ class Onceover
     # This is not helpful for us. We want to be able to test all of our classes on
     # all of our nodes, this could be a lot of vms and having them all running at once
     # would be a real kick in the dick for whatever system was running it.
-    def self.provision_and_test(host,puppet_class,opts = {}, repo = Onceover::Controlrepo.new)
+    def self.provision_and_test(host,puppet_class,opts = {}, repo = PuppetlabsOnceover::Controlrepo.new)
       warn "[DEPRECATION] #{__method__} is deprecated due to the removal of Beaker"
 
       opts = {:runs_before_idempotency => 1}.merge(opts)

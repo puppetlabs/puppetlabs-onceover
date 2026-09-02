@@ -1,6 +1,6 @@
-require 'onceover/controlrepo'
+require 'puppetlabs-onceover/controlrepo'
 
-class Onceover
+class PuppetlabsOnceover
   class Node
     @@all = []
 
@@ -16,13 +16,13 @@ class Onceover
 
       # If we can't find the factset it will fail, so just catch that error and ignore it
       begin
-        facts_file_index = Onceover::Controlrepo.facts_files.index {|facts_file|
+        facts_file_index = PuppetlabsOnceover::Controlrepo.facts_files.index {|facts_file|
           File.basename(facts_file, '.json') == name
         }  
-        @fact_set = Onceover::Node.clean_facts(Onceover::Controlrepo.facts[facts_file_index])
+        @fact_set = PuppetlabsOnceover::Node.clean_facts(PuppetlabsOnceover::Controlrepo.facts[facts_file_index])
 
         # First see if we can find a 'trusted' hash at the top level of our factset 
-        @trusted_set = Onceover::Controlrepo.trusted_facts[facts_file_index]
+        @trusted_set = PuppetlabsOnceover::Controlrepo.trusted_facts[facts_file_index]
         # If we don't find it, attempt to find a 'trusted.extensions' hash nested in our fact_set
         @trusted_set = @fact_set.dig('trusted', 'extensions') if @trusted_set.nil?
         # If we still can't find any, return an empty hash so the following doesn't blow up user written tests:
@@ -30,7 +30,7 @@ class Onceover
         @trusted_set = {} if @trusted_set.nil?
 
         # First see if we can find a 'trusted_external' hash at the top level of our factset 
-        @trusted_external_set = Onceover::Controlrepo.trusted_external_facts[facts_file_index]
+        @trusted_external_set = PuppetlabsOnceover::Controlrepo.trusted_external_facts[facts_file_index]
         # If we don't find it, attempt to find a 'trusted.external' hash nested in our fact_set
         @trusted_external_set = @fact_set.dig('trusted', 'external') if @trusted_external_set.nil?
         # If we still can't find any, return an empty hash so the following doesn't blow up user written tests:
@@ -47,7 +47,7 @@ class Onceover
 
     def self.find(node_name)
       @@all.each do |node|
-        if node_name.is_a?(Onceover::Node)
+        if node_name.is_a?(PuppetlabsOnceover::Node)
           if node = node_name
             return node
           end

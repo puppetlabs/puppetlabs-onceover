@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'onceover/cli'
+require 'puppetlabs-onceover/cli'
 require 'colored'
 
 begin
-  Onceover::CLI.command.run(ARGV)
+  PuppetlabsOnceover::CLI.command.run(ARGV)
 rescue Interrupt
   warn "Aborted!".red
   exit(1)

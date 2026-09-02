@@ -11,7 +11,7 @@ require 'beaker-rspec/beaker_shim' # This overloads Rspec's methods and provides
 require "beaker-rspec/helpers/serverspec"
 include BeakerRSpec::BeakerShim
 
-require 'onceover/beaker'
+require 'puppetlabs-onceover/beaker'
 
 #scp_to hosts, '<%= repo.tempdir %>/etc', '/'
 

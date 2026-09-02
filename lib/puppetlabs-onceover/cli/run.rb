@@ -1,12 +1,12 @@
 require 'cri'
-require 'onceover/controlrepo'
-require 'onceover/cli'
-require 'onceover/runner'
-require 'onceover/testconfig'
-require 'onceover/logger'
-require 'onceover/deploy'
+require 'puppetlabs-onceover/controlrepo'
+require 'puppetlabs-onceover/cli'
+require 'puppetlabs-onceover/runner'
+require 'puppetlabs-onceover/testconfig'
+require 'puppetlabs-onceover/logger'
+require 'puppetlabs-onceover/deploy'
 
-class Onceover
+class PuppetlabsOnceover
   class CLI
     class Run
       def self.command
@@ -41,15 +41,15 @@ This includes deploying using r10k and running all custom tests.
             summary 'Runs spec tests'
 
             optional :p, :parallel, 'Runs spec tests in parallel. This increases speed at the cost of poorly formatted logs and irrelevant junit output.'
-            optional nil, :format, 'Which RSpec formatter to use, valid options are: documentation, progress, FailureCollector, OnceoverFormatter. You also specify this multiple times', multiple: true, default: :defaults
+            optional nil, :format, 'Which RSpec formatter to use, valid options are: documentation, progress, FailureCollector, PuppetlabsOnceoverFormatter. You also specify this multiple times', multiple: true, default: :defaults
             optional nil, :no_workarounds, 'Disables workarounds that have been added for convenience to get around common RSPec issues such as https://github.com/rodjek/rspec-puppet/issues/665'
             optional :ff, :fail_fast, 'Abort the run after the first failure'
             optional nil, :auto_vendored, 'Attempt to resolve vendored puppet modules. Ex: puppetlabs/cron_core', default: false
 
             run do |opts, args, cmd|
-              repo = Onceover::Controlrepo.new(opts)
-              Onceover::Deploy.new.deploy_local(repo, opts)
-              runner = Onceover::Runner.new(repo,Onceover::TestConfig.new(repo.onceover_yaml, opts), :spec)
+              repo = PuppetlabsOnceover::Controlrepo.new(opts)
+              PuppetlabsOnceover::Deploy.new.deploy_local(repo, opts)
+              runner = PuppetlabsOnceover::Runner.new(repo,PuppetlabsOnceover::TestConfig.new(repo.onceover_yaml, opts), :spec)
               runner.prepare!
               runner.run_spec!
             end
@@ -67,8 +67,8 @@ This includes deploying using r10k and running all custom tests.
             run do |opts, args, cmd|
               warn "[DEPRECATION] Acceptance testing is deprecated due to the removal of Beaker dependencies"
               warn "[DEPRECATION] Appeptance testing will be replaced by a more pluggable framework in the future, if you have ideas as to how this should be done please submit a ticket."
-              repo = Onceover::Controlrepo.new(opts)
-              runner = Onceover::Runner.new(repo,Onceover::TestConfig.new(repo.onceover_yaml,opts), :acceptance)
+              repo = PuppetlabsOnceover::Controlrepo.new(opts)
+              runner = PuppetlabsOnceover::Runner.new(repo,PuppetlabsOnceover::TestConfig.new(repo.onceover_yaml,opts), :acceptance)
               runner.prepare!
               runner.run_acceptance!
             end
@@ -80,6 +80,6 @@ This includes deploying using r10k and running all custom tests.
 end
 
 # Register itself
-Onceover::CLI.command.add_command(Onceover::CLI::Run.command)
-Onceover::CLI::Run.command.add_command(Onceover::CLI::Run::Spec.command)
-Onceover::CLI::Run.command.add_command(Onceover::CLI::Run::Acceptance.command)
+PuppetlabsOnceover::CLI.command.add_command(PuppetlabsOnceover::CLI::Run.command)
+PuppetlabsOnceover::CLI::Run.command.add_command(PuppetlabsOnceover::CLI::Run::Spec.command)
+PuppetlabsOnceover::CLI::Run.command.add_command(PuppetlabsOnceover::CLI::Run::Acceptance.command)
