@@ -1,6 +1,6 @@
 Given(/^the OnceoverFormatter$/) do
   require 'rspec'
-  require 'onceover/rspec/formatters'
+  require 'puppetlabs-onceover/rspec/formatters'
 
   RSpec.configure do |c|
     # Create onceover settings to be accessed by formatters
