@@ -1,6 +1,6 @@
 Given(/^the OnceoverFormatter$/) do
   require 'rspec'
-  require 'onceover/rspec/formatters'
+  require 'puppetlabs-onceover/rspec/formatters'
 
   RSpec.configure do |c|
     # Create onceover settings to be accessed by formatters
@@ -13,7 +13,7 @@ Given(/^the OnceoverFormatter$/) do
     c.onceover_environmentpath = "etc/puppetlabs/code/environments"
   end
   
-  @formatter = OnceoverFormatter.new(STDOUT)
+  @formatter = PuppetlabsOnceoverFormatter.new(STDOUT)
 end
 
 When(/^Puppet throws the error: "(.*)"$/) do |error|

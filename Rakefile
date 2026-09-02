@@ -12,7 +12,7 @@ def windows?
 end
 
 RSpec::Core::RakeTask.new(:spec) do |t|
-  t.rspec_opts = '--pattern spec/onceover/**/*_spec.rb'
+  t.rspec_opts = '--pattern spec/puppetlabs-onceover/**/*_spec.rb'
 end
 
 RSpec::Core::RakeTask.new(:acceptance) do |t|
@@ -45,7 +45,7 @@ desc "Run full set of tests"
 task full_tests: [:rspec_unit_tests, :cucumber_acceptance_tests]
 
 task :syntax do
-  paths = ['lib', 'spec/onceover', 'features']
+  paths = ['lib', 'spec/puppetlabs-onceover', 'features']
   require 'find'
   Find.find(*paths) do |path|
     next unless path =~ /\.rb$/

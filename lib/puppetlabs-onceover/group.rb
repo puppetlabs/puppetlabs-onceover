@@ -1,7 +1,7 @@
-require 'onceover/class'
-require 'onceover/node'
+require 'puppetlabs-onceover/class'
+require 'puppetlabs-onceover/node'
 
-class Onceover
+class PuppetlabsOnceover
   class Group
     @@all = []
 
@@ -17,23 +17,23 @@ class Onceover
       @members = []
 
       case
-      when Onceover::Group.valid_members?(members)
+      when PuppetlabsOnceover::Group.valid_members?(members)
         # If it's already a valid list just chuck it in there
         @members = members
       when members.is_a?(Hash)
         # if it's a hash then do subtractive stuff
-        @members = Onceover::TestConfig.subtractive_to_list(members)
+        @members = PuppetlabsOnceover::TestConfig.subtractive_to_list(members)
       when members.nil?
         # Support empty groups yo
         @members = []
       else
         # Turn it into a full list
         # This should also handle lists that include groups
-        member_objects = members.map { |member| Onceover::TestConfig.find_list(member) }
+        member_objects = members.map { |member| PuppetlabsOnceover::TestConfig.find_list(member) }
         member_objects.flatten!
 
         # Check that they are all the same type
-        unless Onceover::Group.valid_members?(member_objects)
+        unless PuppetlabsOnceover::Group.valid_members?(member_objects)
           raise 'Groups must contain either all nodes or all classes. Either there was a mix, or something was spelled wrong'
         end
 
@@ -63,9 +63,9 @@ class Onceover
       # Check that they are all the same type
       # Also catch any errors to assume it's invalid
       begin
-        if members.all? { |item| item.is_a?(Onceover::Class) }
+        if members.all? { |item| item.is_a?(PuppetlabsOnceover::Class) }
           return true
-        elsif members.all? { |item| item.is_a?(Onceover::Node) }
+        elsif members.all? { |item| item.is_a?(PuppetlabsOnceover::Node) }
           return true
         else
           return false

@@ -1,7 +1,7 @@
 require 'backticks'
 require 'io/console'
 
-class Onceover
+class PuppetlabsOnceover
   class Runner
     attr_reader :repo
     attr_reader :config
@@ -42,7 +42,7 @@ class Onceover
         @config.spec_tests.each { |test| @config.verify_spec_test(@repo, test) }
 
         # Deduplicate and write the tests (Spec and Acceptance)
-        @config.run_filters(Onceover::Test.deduplicate(@config.spec_tests)).each do |test|
+        @config.run_filters(PuppetlabsOnceover::Test.deduplicate(@config.spec_tests)).each do |test|
           @config.write_spec_test("#{@repo.tempdir}/spec/classes", test)
         end
       end
@@ -54,7 +54,7 @@ class Onceover
         # Write them out
         @config.write_acceptance_tests(
           "#{@repo.tempdir}/spec/acceptance",
-          @config.run_filters(Onceover::Test.deduplicate(@config.acceptance_tests))
+          @config.run_filters(PuppetlabsOnceover::Test.deduplicate(@config.acceptance_tests))
         )
       end
 
@@ -102,9 +102,9 @@ class Onceover
         end
 
         # Print a summary if we were running in parallel
-        if @config.formatters.include? 'OnceoverFormatterParallel'
-          require 'onceover/rspec/formatters'
-          formatter = OnceoverFormatterParallel.new(STDOUT)
+        if @config.formatters.include? 'PuppetlabsOnceoverFormatterParallel'
+          require 'puppetlabs-onceover/rspec/formatters'
+          formatter = PuppetlabsOnceoverFormatterParallel.new(STDOUT)
           formatter.output_results("#{repo.tempdir}/parallel")
         end
 

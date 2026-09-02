@@ -1,6 +1,6 @@
 require 'logging'
 
-module Onceover::Logger
+module PuppetlabsOnceover::Logger
   def logger
     unless $logger
       # here we setup a color scheme called 'bright'

@@ -1,8 +1,8 @@
 # handle local deployments (run r10k in .onceover dir)
-class Onceover
+class PuppetlabsOnceover
   class Deploy
-    def deploy_local(repo = Onceover::Controlrepo.new, opts = {})
-      require 'onceover/controlrepo'
+    def deploy_local(repo = PuppetlabsOnceover::Controlrepo.new, opts = {})
+      require 'puppetlabs-onceover/controlrepo'
       require 'pathname'
       require 'fileutils'
       require 'multi_json'
@@ -16,7 +16,7 @@ class Onceover
       # Only attempt to resolve vendored modules if configured to do so
       auto_vendored = opts[:auto_vendored] || false
 
-      require 'onceover/vendored_modules' if auto_vendored
+      require 'puppetlabs-onceover/vendored_modules' if auto_vendored
 
       if repo.tempdir == nil
         repo.tempdir = Dir.mktmpdir('r10k')
@@ -104,7 +104,7 @@ class Onceover
         if auto_vendored
           tmp_puppetfile = File.join(temp_controlrepo, 'Puppetfile')
           tmp_puppetfile_contents = File.read(tmp_puppetfile)
-          vm = Onceover::VendoredModules.new({ repo: repo })
+          vm = PuppetlabsOnceover::VendoredModules.new({ repo: repo })
           puppetfile = R10K::ModuleLoader::Puppetfile.new(basedir: temp_controlrepo)
           vm.puppetfile_missing_vendored(puppetfile)
           unless vm.missing_vendored.empty?
@@ -116,7 +116,7 @@ class Onceover
               mod_slug = missing_mod.keys[0]
               "mod '#{mod_slug}',\n  git: '#{missing_mod[mod_slug][:git]}',\n  ref: '#{missing_mod[mod_slug][:ref]}'"
             end.join("\n")
-            File.write(tmp_puppetfile, "#{tmp_puppetfile_contents}\n# Onceover Managed Vendored Modules\n#{modlines}")
+            File.write(tmp_puppetfile, "#{tmp_puppetfile_contents}\n# PuppetlabsOnceover Managed Vendored Modules\n#{modlines}")
           end
         end
       end

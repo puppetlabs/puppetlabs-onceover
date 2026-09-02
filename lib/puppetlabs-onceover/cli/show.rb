@@ -1,9 +1,9 @@
 require 'cri'
-require 'onceover/controlrepo'
-require 'onceover/cli'
-require 'onceover/logger'
+require 'puppetlabs-onceover/controlrepo'
+require 'puppetlabs-onceover/cli'
+require 'puppetlabs-onceover/logger'
 
-class Onceover
+class PuppetlabsOnceover
   class CLI
     class Show
       def self.command
@@ -35,8 +35,8 @@ Useful for debugging.
             DESCRIPTION
 
             run do |opts, args, cmd|
-              repo   = Onceover::Controlrepo.new(opts)
-              config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
+              repo   = PuppetlabsOnceover::Controlrepo.new(opts)
+              config = PuppetlabsOnceover::TestConfig.new(repo.onceover_yaml, opts)
               # Print out the description
               puts "--- Controlrepo Information ---"
               puts repo.to_s
@@ -63,7 +63,7 @@ you have done the update, run the tests to make sure nothing breaks.)
 
             run do |opts, args, cmd|
               # Print out the description
-              Onceover::Controlrepo.new(opts).print_puppetfile_table
+              PuppetlabsOnceover::Controlrepo.new(opts).print_puppetfile_table
               exit 0
             end
           end
@@ -74,6 +74,6 @@ you have done the update, run the tests to make sure nothing breaks.)
 end
 
 # Register itself
-Onceover::CLI.command.add_command(Onceover::CLI::Show.command)
-Onceover::CLI::Show.command.add_command(Onceover::CLI::Show::Repo.command)
-Onceover::CLI::Show.command.add_command(Onceover::CLI::Show::Puppetfile.command)
+PuppetlabsOnceover::CLI.command.add_command(PuppetlabsOnceover::CLI::Show.command)
+PuppetlabsOnceover::CLI::Show.command.add_command(PuppetlabsOnceover::CLI::Show::Repo.command)
+PuppetlabsOnceover::CLI::Show.command.add_command(PuppetlabsOnceover::CLI::Show::Puppetfile.command)

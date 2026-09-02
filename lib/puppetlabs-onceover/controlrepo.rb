@@ -4,11 +4,11 @@ require 'yaml'
 require 'find'
 require 'pathname'
 require 'multi_json'
-require 'onceover/beaker'
-require 'onceover/logger'
-include Onceover::Logger
+require 'puppetlabs-onceover/beaker'
+require 'puppetlabs-onceover/logger'
+include PuppetlabsOnceover::Logger
 
-class Onceover
+class PuppetlabsOnceover
   class Controlrepo
     # This exists for caching. Each time a new one of these objects is created
     # it gets dumped in here so that it's values can be called without
@@ -393,7 +393,7 @@ class Onceover
       end
 
       # Use an ERB template to write the files
-      Onceover::Controlrepo.evaluate_template('.fixtures.yml.erb', binding)
+      PuppetlabsOnceover::Controlrepo.evaluate_template('.fixtures.yml.erb', binding)
     end
 
     def hiera_config_file
@@ -489,9 +489,9 @@ class Onceover
       require 'pathname'
       require 'colored'
 
-      Onceover::Controlrepo.init_write_file(generate_onceover_yaml(repo), repo.onceover_yaml)
+      PuppetlabsOnceover::Controlrepo.init_write_file(generate_onceover_yaml(repo), repo.onceover_yaml)
       # [DEPRECATION] Writing nodesets is deprecated due to the removal of Beaker"
-      #Onceover::Controlrepo.init_write_file(generate_nodesets(repo),repo.nodeset_file)
+      #PuppetlabsOnceover::Controlrepo.init_write_file(generate_nodesets(repo),repo.nodeset_file)
       init_write_file(
         evaluate_template('pre_conditions_README.md.erb', binding),
         File.expand_path('./pre_conditions/README.md', repo.spec_dir)
@@ -534,7 +534,7 @@ class Onceover
     def self.generate_nodesets(repo)
       warn "[DEPRECATION] #{__method__} is deprecated due to the removal of Beaker"
 
-      require 'onceover/beaker'
+      require 'puppetlabs-onceover/beaker'
       require 'multi_json'
       require 'net/http'
 
@@ -542,8 +542,8 @@ class Onceover
 
       repo.facts.each do |fact_set|
         node_name = File.basename(repo.facts_files[repo.facts.index(fact_set)], '.json')
-        boxname   = Onceover::Beaker.facts_to_vagrant_box(fact_set)
-        platform  = Onceover::Beaker.facts_to_platform(fact_set)
+        boxname   = PuppetlabsOnceover::Beaker.facts_to_vagrant_box(fact_set)
+        platform  = PuppetlabsOnceover::Beaker.facts_to_platform(fact_set)
 
         logger.debug "Querying hashicorp API for Vagrant box that matches #{boxname}"
 
@@ -614,12 +614,12 @@ class Onceover
     # Returns the deduplicted and verified output of testconfig.spec_tests for
     # use in Rspec tests so that we don't have to deal with more than one object
     def spec_tests(&block)
-      require 'onceover/testconfig'
+      require 'puppetlabs-onceover/testconfig'
 
       # Load up all of the tests and deduplicate them
-      testconfig = Onceover::TestConfig.new(@onceover_yaml, @opts)
+      testconfig = PuppetlabsOnceover::TestConfig.new(@onceover_yaml, @opts)
       testconfig.spec_tests.each { |tst| testconfig.verify_spec_test(self, tst) }
-      tests = testconfig.run_filters(Onceover::Test.deduplicate(testconfig.spec_tests))
+      tests = testconfig.run_filters(PuppetlabsOnceover::Test.deduplicate(testconfig.spec_tests))
 
       # Loop over each test, executing the user's block on each
       tests.each do |tst|

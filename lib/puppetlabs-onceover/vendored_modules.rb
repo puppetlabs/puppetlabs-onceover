@@ -3,7 +3,7 @@ require 'net/http'
 require 'uri'
 require 'multi_json'
 require 'r10k/module_loader/puppetfile'
-require 'onceover/logger'
+require 'puppetlabs-onceover/logger'
 
 ### operations
 #
@@ -14,18 +14,18 @@ require 'onceover/logger'
 
 ## Example
 #
-# vm = Onceover::VendoredModules.new
+# vm = PuppetlabsOnceover::VendoredModules.new
 # puts vm.vendored_references
 # puppetfile = R10K::ModuleLoader::Puppetfile.new(basedir: '.')
 # vm.puppetfile_missing_vendored(puppetfile)
 # puts vm.missing_vendored.inspect
 
-class Onceover
+class PuppetlabsOnceover
   class VendoredModules
     attr_reader :vendored_references, :missing_vendored
 
     def initialize(opts = {})
-      @repo = opts[:repo] || Onceover::Controlrepo.new
+      @repo = opts[:repo] || PuppetlabsOnceover::Controlrepo.new
       @cachedir = opts[:cachedir] || File.join(@repo.tempdir, 'vendored_modules')
       @puppet_version = Gem::Version.new(Puppet.version)
       @puppet_major_version = Gem::Version.new(@puppet_version.segments[0])

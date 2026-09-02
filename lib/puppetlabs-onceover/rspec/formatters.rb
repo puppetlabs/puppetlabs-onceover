@@ -3,7 +3,7 @@ require 'rspec-puppet'
 require 'pathname'
 require 'English'
 
-class OnceoverFormatter
+class PuppetlabsOnceoverFormatter
   RSpec::Core::Formatters.register(
     self,
     :example_group_started,
@@ -62,7 +62,7 @@ class OnceoverFormatter
   end
 
   def dump_failures notification
-    require 'onceover/controlrepo'
+    require 'puppetlabs-onceover/controlrepo'
 
     failures = extract_failures(notification)
 
@@ -70,7 +70,7 @@ class OnceoverFormatter
     @output << "\n\n\n"
 
     failures.each do |name, errors|
-      @output << Onceover::Controlrepo.evaluate_template('error_summary.yaml.erb', binding)
+      @output << PuppetlabsOnceover::Controlrepo.evaluate_template('error_summary.yaml.erb', binding)
     end
 
     @output << "\n"
@@ -227,7 +227,7 @@ class OnceoverFormatter
   end
 end
 
-class OnceoverFormatterParallel < OnceoverFormatter
+class PuppetlabsOnceoverFormatterParallel < PuppetlabsOnceoverFormatter
   require 'yaml'
 
   RSpec::Core::Formatters.register(
@@ -289,7 +289,7 @@ class OnceoverFormatterParallel < OnceoverFormatter
 
     # Output errors
     roles.each do |name, errors|
-      @output << Onceover::Controlrepo.evaluate_template('error_summary.yaml.erb', binding)
+      @output << PuppetlabsOnceover::Controlrepo.evaluate_template('error_summary.yaml.erb', binding)
     end
     @output << "\n"
   end
