@@ -47,7 +47,7 @@ Layout/LeadingCommentSpace:
     - 'lib/onceover/beaker/spec_helper.rb'
     - 'lib/onceover/controlrepo.rb'
     - 'lib/onceover/runner.rb'
-    - 'onceover.gemspec'
+    - 'puppetlabs-onceover.gemspec'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -203,7 +203,7 @@ Lint/RedundantStringCoercion:
 # Offense count: 1
 Lint/RescueException:
   Exclude:
-    - 'bin/onceover'
+    - 'bin/puppetlabs-onceover'
 
 # Offense count: 4
 # Configuration parameters: AllowKeywordBlockArguments.
@@ -426,7 +426,7 @@ Style/EmptyElse:
 # This cop supports safe autocorrection (--autocorrect).
 Style/Encoding:
   Exclude:
-    - 'onceover.gemspec'
+    - 'puppetlabs-onceover.gemspec'
 
 # Offense count: 34
 # This cop supports unsafe autocorrection (--autocorrect-all).
