@@ -75,7 +75,7 @@ Then(/^the config should contain "([^"]*)"$/) do |pattern|
   expect(@repo.config_file_contents).to match(pattern)
 end
 
-Then(/^PuppetlabsOnceover should exit (\d+)$/) do |code|
+Then(/^Onceover should exit (\d+)$/) do |code|
   expect(@cmd.exit_code).to eq code.to_i
 end
 
