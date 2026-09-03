@@ -39,6 +39,7 @@ group :test do
   # Required for the final controlrepo tests
   gem 'rexml', '~> 3.3', '>= 3.3.9'
   gem 'toml-rb'
+  gem 'simplecov', require: false
 end
 
 group :development do

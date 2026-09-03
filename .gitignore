@@ -7,9 +7,13 @@ Gemfile.local
 /.bundle
 /.bin
 /.ruby-version
+/mise.toml
 tmp
 /vendor
 /.vendor
+
+# rspec/simplecov coverage reports
+/coverage
 
 # Vim
 /.projections.json
