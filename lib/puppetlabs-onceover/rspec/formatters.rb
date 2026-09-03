@@ -14,9 +14,8 @@ class PuppetlabsOnceoverFormatter
   )
 
   COMPILATION_ERROR      = %r{error during compilation: (?<error>.*)}
-  # rubocop:disable Lint/MixedRegexpCaptureTypes
+  # rubocop:disable-next Lint/MixedRegexpCaptureTypes
   ERROR_WITH_LOCATION    = %r{(?<error>.*?)\s(at )?(\((file: (?<file>.*?), )?line: (?<line>\d+)(, column: (?<column>\d+))?\))(; )?}
-  # rubocop:enable Lint/MixedRegexpCaptureTypes
   ERROR_WITHOUT_LOCATION = %r{(?<error>.*?)\son node}
 
   def initialize output
