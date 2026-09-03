@@ -1,41 +1,47 @@
-require 'parallel_tests'
 require 'rspec/core/rake_task'
-
-# NOTE: these `spec:standalone` / `parallel_spec` tasks intentionally
-# re-implement (rather than require) voxpupuli-test's rake/spec.rb, so that
-# the generated Rakefile used to drive controlrepo tests has no dependency
-# (transitive or otherwise) on voxpupuli-test or any OpenVox-owned gem.
-# `onceover run spec` shells out to `rake parallel_spec` / `rake
-# spec:standalone` (see lib/puppetlabs-onceover/runner.rb) and onceover
-# manages its own fixtures symlinking, so the `fixtures:prep`/`fixtures:clean`
-# tasks voxpupuli-test wires in as prerequisites are not needed here.
-spec_pattern = 'spec/{aliases,classes,defines,functions,hosts,integration,plans,tasks,type_aliases,types,unit}/**/*_spec.rb'
-
-RSpec::Core::RakeTask.new('spec:standalone') do |t, _args|
-  t.rspec_opts = []
-  t.rspec_opts << ENV['CI_SPEC_OPTIONS'] unless ENV['CI_SPEC_OPTIONS'].nil?
-  t.pattern = spec_pattern
-end
-
-desc 'Run spec tests in parallel'
-task :parallel_spec do |_t, args|
-  Rake::Task['parallel_spec:standalone'].invoke(*args.extras)
-end
-
-desc 'Parallel spec tests'
-task 'parallel_spec:standalone' do |_t, _args|
-  file_list = Rake::FileList[spec_pattern].to_a
-  if file_list.empty?
-    warn 'No files for parallel_spec to run against'
-  else
-    ci_opts = ENV['CI_SPEC_OPTIONS'].to_s.strip.split
-    parallel_args = ['--type', 'rspec', '--', '--format', 'progress'] + ci_opts + ['--'] + file_list
-
-    ParallelTests::CLI.new.run(parallel_args)
-  end
-end
+require 'parallel_tests/cli'
 
 desc "Run acceptance tests"
 RSpec::Core::RakeTask.new(:acceptance) do |t|
   t.pattern = 'spec/acceptance'
+end
+
+# https://github.com/puppetlabs/puppetlabs_spec_helper/blob/main/lib/puppetlabs_spec_helper/rake_tasks.rb#L48
+pattern = 'spec/{aliases,classes,defines,functions,hosts,integration,plans,tasks,type_aliases,types,unit}/**/*_spec.rb'
+
+# https://github.com/puppetlabs/puppetlabs_spec_helper/blob/main/lib/puppetlabs_spec_helper/rake_tasks.rb#L50-L72
+RSpec::Core::RakeTask.new('spec:standalone') do |t, args|
+  t.rspec_opts = []
+  t.rspec_opts << ENV['CI_SPEC_OPTIONS'] unless ENV['CI_SPEC_OPTIONS'].nil?
+  if ENV['CI_NODE_TOTAL'] && ENV['CI_NODE_INDEX']
+    ci_total = ENV['CI_NODE_TOTAL'].to_i
+    ci_index = ENV['CI_NODE_INDEX'].to_i
+    raise "CI_NODE_INDEX must be between 1-#{ci_total}" unless ci_index >= 1 && ci_index <= ci_total
+
+    files = Rake::FileList[pattern].to_a
+    per_node = (files.size / ci_total.to_f).ceil
+    t.pattern = if args.extras.nil? || args.extras.empty?
+                  files.each_slice(per_node).to_a[ci_index - 1] || files.first
+                else
+                  args.extras.join(',')
+                end
+  else
+    t.pattern = if args.extras.nil? || args.extras.empty?
+                  pattern
+                else
+                  args.extras.join(',')
+                end
+  end
+end
+
+desc 'Run spec tests in parallel'
+task :parallel_spec do |_t, args|
+  file_list = Rake::FileList[pattern].to_a
+  if file_list.empty?
+    warn 'No files for parallel_spec to run against'
+  else
+    ci_opts = ENV['CI_SPEC_OPTIONS'].to_s.strip.split
+    cli_args = ['--type', 'rspec', '--', '--format', 'progress'] + ci_opts + ['--'] + file_list
+    ParallelTests::CLI.new.run(cli_args)
+  end
 end
