@@ -17,6 +17,7 @@ group :development do
   gem 'pry'
   gem 'rubocop'
   gem 'rubygems-tasks'
+  gem 'voxpupuli-test', '~> 14.0'
 end
 
 # Evaluate Gemfile.local if it exists
