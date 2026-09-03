@@ -76,8 +76,8 @@ rescue LoadError
 else
   GitHubChangelogGenerator::RakeTask.new :changelog do |config|
     config.exclude_labels = %w[duplicate question invalid wontfix wont-fix skip-changelog github_actions]
-    config.user = 'voxpupuli'
-    config.project = 'onceover'
+    config.user = 'puppetlabs'
+    config.project = 'puppetlabs-onceover'
     gem_version = Gem::Specification.load("#{config.project}.gemspec").version
     config.future_release = "v#{gem_version}"
   end
