@@ -1,4 +1,31 @@
-require 'voxpupuli/test/rake'
+require 'parallel_tests'
+require 'rspec/core/rake_task'
+
+spec_pattern = 'spec/{aliases,classes,defines,functions,hosts,integration,plans,tasks,type_aliases,types,unit}/**/*_spec.rb'
+
+RSpec::Core::RakeTask.new('spec:standalone') do |t, _args|
+  t.rspec_opts = []
+  t.rspec_opts << ENV['CI_SPEC_OPTIONS'] unless ENV['CI_SPEC_OPTIONS'].nil?
+  t.pattern = spec_pattern
+end
+
+desc 'Run spec tests in parallel'
+task :parallel_spec do |_t, args|
+  Rake::Task['parallel_spec:standalone'].invoke(*args.extras)
+end
+
+desc 'Parallel spec tests'
+task 'parallel_spec:standalone' do |_t, _args|
+  file_list = Rake::FileList[spec_pattern].to_a
+  if file_list.empty?
+    warn 'No files for parallel_spec to run against'
+  else
+    ci_opts = ENV['CI_SPEC_OPTIONS'].to_s.strip.split
+    parallel_args = ['--type', 'rspec', '--', '--format', 'progress'] + ci_opts + ['--'] + file_list
+
+    ParallelTests::CLI.new.run(parallel_args)
+  end
+end
 
 #desc "Run acceptance tests"
 #RSpec::Core::RakeTask.new(:acceptance) do |t|
