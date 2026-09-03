@@ -46,8 +46,20 @@ class PuppetlabsOnceover
       #   control-repo/spec/vendored_modules/<component>-puppet_agent-<agent version>.json
       @manual_vendored_dir = File.join(@repo.spec_dir, 'vendored_modules')
 
-      # Get the entire file tree of the puppetlabs/puppet-agent repository
+      # Get the entire file tree of the puppet-agent component manifest.
       # https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28#get-a-tree
+      #
+      # Deliberately still points at OpenVoxProject/openvox-agent rather than
+      # puppetlabs/puppet-agent (CAT-2777). This is a plain API URL, not a
+      # namespace/require-path reference, so it carries none of the
+      # Ruby-process collision risk this fork otherwise exists to avoid.
+      # puppetlabs/puppet-agent's public mirror last tagged 8.10.0 and last
+      # pushed 2025-01-10 -- it has no ref for any puppet version this gem
+      # actually tests against (8.2x+, 9.x). Pointing here would 404 for
+      # every current install and silently break --auto_vendored for
+      # everyone but 8.10.0 users. Revisit only if puppetlabs ever resumes
+      # public tagging of that repo, or a current internal equivalent
+      # becomes available to fork users.
       puppet_agent_tree = query_or_cache(
         "https://api.github.com/repos/OpenVoxProject/openvox-agent/git/trees/#{@puppet_version}",
         { recursive: true },
