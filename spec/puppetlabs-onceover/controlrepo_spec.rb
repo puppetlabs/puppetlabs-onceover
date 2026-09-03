@@ -197,7 +197,7 @@ describe "PuppetlabsOnceover::Controlrepo" do
       Dir.mktmpdir do |dir|
         file = File.join(dir, 'bad_encoding.pp')
         # An invalid UTF-8 byte sequence makes `line =~ regex` raise ArgumentError.
-        File.open(file, 'wb') { |f| f.write("# \xFF\xFE bad line\n") }
+        File.binwrite(file, "# \xFF\xFE bad line\n")
         expect { repo.send(:find_classname, file) }.not_to raise_error
         expect(repo.send(:find_classname, file)).to be_nil
       end
@@ -406,7 +406,7 @@ describe "PuppetlabsOnceover::Controlrepo" do
       puppetfile = R10K::Puppetfile.new(basic_path)
       puppetfile.load!
       forge_mod = puppetfile.modules.find { |m| m.is_a?(R10K::Module::Forge) }
-      git_mod   = puppetfile.modules.find { |m| m.is_a?(R10K::Module::Git) }
+      puppetfile.modules.find { |m| m.is_a?(R10K::Module::Git) }
 
       current_release = double('release', version: '9.9.9')
       v3_module = double('v3_module', current_release: current_release, endorsement: 'supported', superseded_by: nil)
@@ -428,11 +428,9 @@ describe "PuppetlabsOnceover::Controlrepo" do
       call_count = 0
       allow(forge_mod).to receive(:v3_module) do
         call_count += 1
-        if call_count == 1
-          raise RuntimeError, 'boom'
-        else
-          double('v3_module', current_release: double('release', version: '4.11.0'))
-        end
+        raise 'boom' if call_count == 1
+
+        double('v3_module', current_release: double('release', version: '4.11.0'))
       end
       allow(forge_mod).to receive(:expected_version).and_return('4.11.0')
 
@@ -782,7 +780,7 @@ describe "PuppetlabsOnceover::Controlrepo" do
       repo = PuppetlabsOnceover::Controlrepo.new(path: repo_path, onceover_yaml: File.join(repo_path, 'spec', 'onceover.yaml'))
 
       yielded = []
-      repo.spec_tests do |class_name, node_name, fact_set, trusted_set, trusted_external_set, pre_condition|
+      repo.spec_tests do |class_name, node_name, _fact_set, _trusted_set, _trusted_external_set, _pre_condition|
         yielded << [class_name, node_name]
       end
 

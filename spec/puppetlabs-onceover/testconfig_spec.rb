@@ -15,7 +15,6 @@ describe "PuppetlabsOnceover::TestConfig" do
     logger.level = :fatal
     # Silence the deprecation warnings printed by the deprecated methods under test,
     # they're expected noise, not something we're asserting on.
-    allow_any_instance_of(Kernel).to receive(:warn) if false
   end
 
   # Helper to write an arbitrary onceover.yaml-shaped hash out to a real tempfile,
@@ -41,9 +40,9 @@ describe "PuppetlabsOnceover::TestConfig" do
 
   describe "#initialize" do
     it "raises a friendly error when the file does not exist" do
-      expect {
+      expect do
         PuppetlabsOnceover::TestConfig.new('spec/fixtures/controlrepos/does_not_exist/onceover.yaml')
-      }.to raise_error(RuntimeError, /Could not find/)
+      end.to raise_error(RuntimeError, /Could not find/)
     end
 
     it "raises a friendly error when the YAML is malformed" do
@@ -51,9 +50,9 @@ describe "PuppetlabsOnceover::TestConfig" do
       file.write("classes: [\nnodes: not: valid: :yaml")
       file.close
 
-      expect {
+      expect do
         PuppetlabsOnceover::TestConfig.new(file.path)
-      }.to raise_error(RuntimeError, /Could not parse/)
+      end.to raise_error(RuntimeError, /Could not parse/)
     end
 
     it "loads classes/nodes/groups/test_matrix from a real onceover.yaml, expanding regex classes via the controlrepo" do
@@ -136,7 +135,7 @@ describe "PuppetlabsOnceover::TestConfig" do
         tags: 'foo,bar', classes: 'role::test_data_return', nodes: 'CentOS-7.0-64',
         skip_r10k: true, force: true, fail_fast: true
       )
-      expect(config.filter_tags).to eq(['foo', 'bar'])
+      expect(config.filter_tags).to eq(%w[foo bar])
       expect(config.filter_classes.map(&:name)).to eq(['role::test_data_return'])
       expect(config.filter_nodes.map(&:name)).to eq(['CentOS-7.0-64'])
       expect(config.skip_r10k).to eq(true)
@@ -222,9 +221,9 @@ describe "PuppetlabsOnceover::TestConfig" do
 
     it "raises when nothing matches, and restores the logger level afterwards" do
       logger.level = :info
-      expect {
+      expect do
         PuppetlabsOnceover::TestConfig.find_list('totally_unknown_thing')
-      }.to raise_error(RuntimeError, /Could not find totally_unknown_thing/)
+      end.to raise_error(RuntimeError, /Could not find totally_unknown_thing/)
       expect(logger.level).to eq(1) # :info
     end
   end
@@ -243,15 +242,15 @@ describe "PuppetlabsOnceover::TestConfig" do
     end
 
     it "raises when 'exclude' is missing" do
-      expect {
+      expect do
         PuppetlabsOnceover::TestConfig.subtractive_to_list('include' => 'all')
-      }.to raise_error(RuntimeError, /must have an `exclude`/)
+      end.to raise_error(RuntimeError, /must have an `exclude`/)
     end
 
     it "raises when 'include' is missing" do
-      expect {
+      expect do
         PuppetlabsOnceover::TestConfig.subtractive_to_list('exclude' => 'all')
-      }.to raise_error(RuntimeError, /must have an `exclude`/)
+      end.to raise_error(RuntimeError, /must have an `exclude`/)
     end
   end
 
@@ -292,7 +291,7 @@ describe "PuppetlabsOnceover::TestConfig" do
 
   describe "#pre_condition" do
     it "concatenates every *.pp file under spec/pre_conditions into one string" do
-      repo = puppet_controlrepo
+      puppet_controlrepo
       config = PuppetlabsOnceover::TestConfig.new(
         'spec/fixtures/controlrepos/puppet_controlrepo/spec/onceover.yaml',
         path: 'spec/fixtures/controlrepos/puppet_controlrepo'
@@ -303,7 +302,7 @@ describe "PuppetlabsOnceover::TestConfig" do
     end
 
     it "returns nil when there are no pre_condition files" do
-      repo = function_mocking_repo
+      function_mocking_repo
       config = PuppetlabsOnceover::TestConfig.new(
         'spec/fixtures/controlrepos/function_mocking/spec/onceover.yaml',
         path: 'spec/fixtures/controlrepos/function_mocking'
@@ -325,7 +324,7 @@ describe "PuppetlabsOnceover::TestConfig" do
     it "#write_spec_test renders a spec file for a test" do
       test = config.spec_tests.first
       config.write_spec_test(location, test)
-      expect(File.exist?("#{location}/#{test.to_s}_spec.rb")).to eq(true)
+      expect(File.exist?("#{location}/#{test}_spec.rb")).to eq(true)
     end
 
     it "#write_acceptance_tests warns about deprecation and renders acceptance_spec.rb" do
@@ -371,14 +370,14 @@ describe "PuppetlabsOnceover::TestConfig" do
         'include_spec_files' => 'onceover.yaml'
       )
       config = PuppetlabsOnceover::TestConfig.new(yaml_path, path: 'spec/fixtures/controlrepos/function_mocking',
-                                                              tempdir: Dir.mktmpdir('onceover-copy-spec'))
+                                                             tempdir: Dir.mktmpdir('onceover-copy-spec'))
       config.copy_spec_files(repo)
       expect(File.exist?("#{repo.tempdir}/spec/onceover.yaml")).to eq(true)
     end
   end
 
   describe "#create_fixtures_symlinks" do
-    # Note: the File::ALT_SEPARATOR branch inside create_fixtures_symlinks (the
+    # NOTE: the File::ALT_SEPARATOR branch inside create_fixtures_symlinks (the
     # Dir.create_junction / `mklink /J` Windows-junction path) can't be exercised
     # here -- File::ALT_SEPARATOR is only ever truthy when Ruby itself is running
     # on Windows, which this suite does not run on. Left uncovered deliberately;

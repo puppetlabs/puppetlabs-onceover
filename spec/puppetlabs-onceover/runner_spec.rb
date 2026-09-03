@@ -72,7 +72,7 @@ describe PuppetlabsOnceover::Runner do
     end
 
     it 'sets a bundle exec command prefix when BUNDLE_GEMFILE is set' do
-      original = ENV['BUNDLE_GEMFILE']
+      original = ENV.fetch('BUNDLE_GEMFILE', nil)
       ENV['BUNDLE_GEMFILE'] = 'Gemfile'
       runner = described_class.new(repo, config)
       expect(runner.instance_variable_get(:@command_prefix)).to eq('bundle exec ')
@@ -196,7 +196,7 @@ describe PuppetlabsOnceover::Runner do
     before do
       allow(Backticks::Runner).to receive(:new).and_return(backticks_double)
       allow(Dir).to receive(:chdir).and_yield
-      allow(STDERR).to receive(:isatty).and_return(false)
+      allow($stderr).to receive(:isatty).and_return(false)
     end
 
     it 'runs rake spec:standalone in standalone mode and exits with the status code' do
@@ -235,8 +235,8 @@ describe PuppetlabsOnceover::Runner do
 
       allow(runner).to receive(:exit)
       runner.run_spec!
-      expect(ENV['CI_SPEC_OPTIONS']).to include('--tag sometag')
-      expect(ENV['CI_SPEC_OPTIONS']).to include('--fail-fast')
+      expect(ENV.fetch('CI_SPEC_OPTIONS', nil)).to include('--tag sometag')
+      expect(ENV.fetch('CI_SPEC_OPTIONS', nil)).to include('--fail-fast')
       ENV.delete('CI_SPEC_OPTIONS')
     end
 
@@ -246,7 +246,7 @@ describe PuppetlabsOnceover::Runner do
       logger.level = :info
 
       formatter_double = double('formatter', output_results: nil)
-      expect(PuppetlabsOnceoverFormatterParallel).to receive(:new).with(STDOUT).and_return(formatter_double)
+      expect(PuppetlabsOnceoverFormatterParallel).to receive(:new).with($stdout).and_return(formatter_double)
       expect(formatter_double).to receive(:output_results).with("#{repo.tempdir}/parallel")
 
       allow(runner).to receive(:exit)
@@ -262,7 +262,7 @@ describe PuppetlabsOnceover::Runner do
     before do
       allow(Backticks::Runner).to receive(:new).and_return(backticks_double)
       allow(Dir).to receive(:chdir).and_yield
-      allow(STDERR).to receive(:isatty).and_return(false)
+      allow($stderr).to receive(:isatty).and_return(false)
     end
 
     it 'warns about deprecation and runs rake acceptance' do
@@ -286,9 +286,9 @@ describe PuppetlabsOnceover::Runner do
       runner = described_class.new(repo, config, :spec)
       backticks_double = double('backticks_runner', run: double('process', join: double('joined')))
       allow(Backticks::Runner).to receive(:new).and_return(backticks_double)
-      allow(STDERR).to receive(:isatty).and_return(true)
-      expect(STDERR).to receive(:raw!)
-      expect(STDERR).to receive(:cooked!)
+      allow($stderr).to receive(:isatty).and_return(true)
+      expect($stderr).to receive(:raw!)
+      expect($stderr).to receive(:cooked!)
 
       runner.run_command('rake', 'spec:standalone')
     end
@@ -297,9 +297,9 @@ describe PuppetlabsOnceover::Runner do
       runner = described_class.new(repo, config, :spec)
       backticks_double = double('backticks_runner', run: double('process', join: double('joined')))
       allow(Backticks::Runner).to receive(:new).and_return(backticks_double)
-      allow(STDERR).to receive(:isatty).and_return(false)
-      expect(STDERR).not_to receive(:raw!)
-      expect(STDERR).not_to receive(:cooked!)
+      allow($stderr).to receive(:isatty).and_return(false)
+      expect($stderr).not_to receive(:raw!)
+      expect($stderr).not_to receive(:cooked!)
 
       runner.run_command('rake', 'spec:standalone')
     end

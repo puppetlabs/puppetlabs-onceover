@@ -134,9 +134,9 @@ describe 'rake_tasks.rb' do
       box_body = {
         'current_version' => {
           'providers' => [
-            { 'name' => 'virtualbox', 'original_url' => 'https://example.com/box.box' },
-          ],
-        },
+            { 'name' => 'virtualbox', 'original_url' => 'https://example.com/box.box' }
+          ]
+        }
       }.to_json
 
       http_double = double('http', use_ssl: true, 'use_ssl=': true)

@@ -10,15 +10,17 @@ require 'puppetlabs-onceover/beaker'
 # stand in a minimal fake `::Beaker::NetworkManager` and make the specific `require`
 # calls those methods make into no-ops.
 module ::Beaker
-  class NetworkManager
-  end unless defined?(::Beaker::NetworkManager)
+  unless defined?(::Beaker::NetworkManager)
+    class NetworkManager
+    end
+  end
 end
 
 describe "PuppetlabsOnceover::Beaker" do
   before(:each) do
     allow(Kernel).to receive(:warn)
     allow_any_instance_of(Object).to receive(:require).and_wrap_original do |original, name|
-      %w[beaker-rspec beaker/network_manager].include?(name) ? true : original.call(name)
+      %w[beaker-rspec beaker/network_manager].include?(name) || original.call(name)
     end
   end
 
@@ -143,15 +145,15 @@ describe "PuppetlabsOnceover::Beaker" do
     let(:unused_repo) { double('repo') }
 
     it "raises when given an array of hosts" do
-      expect {
+      expect do
         PuppetlabsOnceover::Beaker.provision_and_test([double('host')], 'role::example', {}, unused_repo)
-      }.to raise_error(RuntimeError, /must be a single host object/)
+      end.to raise_error(RuntimeError, /must be a single host object/)
     end
 
     it "raises when puppet_class is not a String" do
-      expect {
+      expect do
         PuppetlabsOnceover::Beaker.provision_and_test(double('host'), :not_a_string, {}, unused_repo)
-      }.to raise_error(RuntimeError, /must be a single Class/)
+      end.to raise_error(RuntimeError, /must be a single Class/)
     end
 
     it "provisions (when host is not up), applies the manifest, checks idempotency, and cleans up" do
@@ -163,7 +165,7 @@ describe "PuppetlabsOnceover::Beaker" do
       allow(network_manager).to receive(:validate)
       allow(network_manager).to receive(:configure)
       allow(network_manager).to receive(:cleanup)
-      allow(::Beaker::NetworkManager).to receive(:new).and_return(network_manager)
+      allow(Beaker::NetworkManager).to receive(:new).and_return(network_manager)
 
       apply_calls = []
       allow(PuppetlabsOnceover::Beaker).to receive(:apply_manifest_on) do |h, manifest, opts|
@@ -184,7 +186,7 @@ describe "PuppetlabsOnceover::Beaker" do
       network_manager = double('network_manager')
       allow(network_manager).to receive(:instance_variable_set)
       allow(network_manager).to receive(:cleanup)
-      allow(::Beaker::NetworkManager).to receive(:new).and_return(network_manager)
+      allow(Beaker::NetworkManager).to receive(:new).and_return(network_manager)
 
       apply_calls = []
       allow(PuppetlabsOnceover::Beaker).to receive(:apply_manifest_on) do |h, manifest, opts|
@@ -230,14 +232,14 @@ describe "PuppetlabsOnceover::Beaker" do
       allow(network_manager).to receive(:validate)
       allow(network_manager).to receive(:configure)
       allow(network_manager).to receive(:instance_variable_get).with(:@hosts).and_return([host_double])
-      allow(::Beaker::NetworkManager).to receive(:new).and_return(network_manager)
+      allow(Beaker::NetworkManager).to receive(:new).and_return(network_manager)
       allow(PuppetlabsOnceover::Beaker).to receive(:logger).and_return(double('logger'))
       allow(PuppetlabsOnceover::Beaker).to receive(:hosts).and_return([host_double])
 
       result = PuppetlabsOnceover::Beaker.host_create('centos7', nodes)
 
       expect(result).to eq(host_double)
-      expect(::Beaker::NetworkManager).to have_received(:new) do |opts, _logger|
+      expect(Beaker::NetworkManager).to have_received(:new) do |opts, _logger|
         expect(opts[:HOSTS]).to eq({ 'centos7' => { platform: 'el-7-x86_64' } })
         expect(opts[:other_opt]).to eq('value')
       end
@@ -257,7 +259,7 @@ describe "PuppetlabsOnceover::Beaker" do
       allow(network_manager).to receive(:validate)
       allow(network_manager).to receive(:configure)
       allow(network_manager).to receive(:instance_variable_get).with(:@hosts).and_return([host_double])
-      allow(::Beaker::NetworkManager).to receive(:new) do |opts, _logger|
+      allow(Beaker::NetworkManager).to receive(:new) do |opts, _logger|
         captured_opts = opts
         network_manager
       end
@@ -279,13 +281,13 @@ describe "PuppetlabsOnceover::Beaker" do
       allow(network_manager).to receive(:validate)
       allow(network_manager).to receive(:configure)
       allow(network_manager).to receive(:instance_variable_get).with(:@hosts).and_return([double('a'), double('b')])
-      allow(::Beaker::NetworkManager).to receive(:new).and_return(network_manager)
+      allow(Beaker::NetworkManager).to receive(:new).and_return(network_manager)
       allow(PuppetlabsOnceover::Beaker).to receive(:logger).and_return(double('logger'))
       allow(PuppetlabsOnceover::Beaker).to receive(:hosts).and_return([double('a'), double('b')])
 
-      expect {
+      expect do
         PuppetlabsOnceover::Beaker.host_create('centos7', nodes)
-      }.to raise_error(RuntimeError, /too many machines/)
+      end.to raise_error(RuntimeError, /too many machines/)
     end
   end
 end

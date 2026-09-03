@@ -39,8 +39,8 @@ describe "PuppetlabsOnceover::Group" do
     it "resolves a hash into a subtractive include/exclude list via TestConfig.subtractive_to_list" do
       a = PuppetlabsOnceover::Node.new('node_a')
       b = PuppetlabsOnceover::Node.new('node_b')
-      all_nodes = PuppetlabsOnceover::Group.new('all_nodes', [a, b])
-      excluded  = PuppetlabsOnceover::Group.new('excluded', [b])
+      PuppetlabsOnceover::Group.new('all_nodes', [a, b])
+      PuppetlabsOnceover::Group.new('excluded', [b])
 
       group = PuppetlabsOnceover::Group.new('subtractive', { 'include' => 'all_nodes', 'exclude' => 'excluded' })
       expect(group.members).to eq([a])
@@ -49,9 +49,9 @@ describe "PuppetlabsOnceover::Group" do
     it "resolves a list of names/groups into member objects, flattening nested groups" do
       a = PuppetlabsOnceover::Node.new('node_a')
       b = PuppetlabsOnceover::Node.new('node_b')
-      inner = PuppetlabsOnceover::Group.new('inner', [a])
+      PuppetlabsOnceover::Group.new('inner', [a])
 
-      group = PuppetlabsOnceover::Group.new('outer', ['inner', 'node_b'])
+      group = PuppetlabsOnceover::Group.new('outer', %w[inner node_b])
       expect(group.members).to eq([a, b])
     end
 
@@ -59,9 +59,9 @@ describe "PuppetlabsOnceover::Group" do
       PuppetlabsOnceover::Class.new('role::a')
       PuppetlabsOnceover::Node.new('node_a')
 
-      expect {
+      expect do
         PuppetlabsOnceover::Group.new('mixed', ['role::a', 'node_a'])
-      }.to raise_error(RuntimeError, /must contain either all nodes or all classes/)
+      end.to raise_error(RuntimeError, /must contain either all nodes or all classes/)
     end
 
     it "adds itself to .all" do

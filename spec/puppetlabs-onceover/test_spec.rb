@@ -44,8 +44,8 @@ describe "PuppetlabsOnceover::Test" do
     end
 
     it "leaves an array of tags as-is" do
-      test = PuppetlabsOnceover::Test.new(node_a.name, class_a, { 'tags' => ['a', 'b'] })
-      expect(test.tags).to eq(['a', 'b'])
+      test = PuppetlabsOnceover::Test.new(node_a.name, class_a, { 'tags' => %w[a b] })
+      expect(test.tags).to eq(%w[a b])
     end
 
     it "defaults tags to an empty array when absent" do
@@ -55,7 +55,7 @@ describe "PuppetlabsOnceover::Test" do
 
     context "resolving the 'on_this' (node) argument" do
       it "accepts a group name and expands it to its member nodes" do
-        group = PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
+        PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
         test = PuppetlabsOnceover::Test.new('nodegroup', class_a, {})
         expect(test.nodes).to eq([node_a, node_b])
       end
@@ -66,15 +66,15 @@ describe "PuppetlabsOnceover::Test" do
       end
 
       it "raises when the node/group cannot be found" do
-        expect {
+        expect do
           PuppetlabsOnceover::Test.new('no_such_node_or_group', class_a, {})
-        }.to raise_error(RuntimeError, /was not found in the list of nodes or groups/)
+        end.to raise_error(RuntimeError, /was not found in the list of nodes or groups/)
       end
     end
 
     context "resolving the 'test_this' (classes) argument" do
       it "accepts a group name and expands it to its member classes" do
-        group = PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
+        PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
         test = PuppetlabsOnceover::Test.new(node_a.name, 'classgroup', {})
         expect(test.classes).to eq([class_a, class_b])
       end
@@ -85,14 +85,14 @@ describe "PuppetlabsOnceover::Test" do
       end
 
       it "raises when given a string that matches neither a class nor a group" do
-        expect {
+        expect do
           PuppetlabsOnceover::Test.new(node_a.name, 'no_such_class_or_group', {})
-        }.to raise_error(RuntimeError, /was not found in the list of classes or groups/)
+        end.to raise_error(RuntimeError, /was not found in the list of classes or groups/)
       end
 
       it "accepts a subtractive include/exclude hash" do
-        all_classes = PuppetlabsOnceover::Group.new('all_classes', [class_a, class_b])
-        excluded    = PuppetlabsOnceover::Group.new('excluded', [class_b])
+        PuppetlabsOnceover::Group.new('all_classes', [class_a, class_b])
+        PuppetlabsOnceover::Group.new('excluded', [class_b])
         test = PuppetlabsOnceover::Test.new(node_a.name, { 'include' => 'all_classes', 'exclude' => 'excluded' }, {})
         expect(test.classes).to eq([class_a])
       end
@@ -125,13 +125,13 @@ describe "PuppetlabsOnceover::Test" do
     end
 
     it "summarizes as N_classes when there are multiple classes" do
-      group = PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
+      PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
       test = PuppetlabsOnceover::Test.new(node_a.name, 'classgroup', {})
       expect(test.to_s).to eq("2_classes_on_node_a")
     end
 
     it "summarizes as N_nodes when there are multiple nodes" do
-      group = PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
+      PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
       test = PuppetlabsOnceover::Test.new('nodegroup', class_a, {})
       expect(test.to_s).to eq("role__a_on_2_nodes")
     end
@@ -156,8 +156,8 @@ describe "PuppetlabsOnceover::Test" do
     end
 
     it "handles tests with multiple nodes/classes by expanding every combination" do
-      group_nodes   = PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
-      group_classes = PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
+      PuppetlabsOnceover::Group.new('nodegroup', [node_a, node_b])
+      PuppetlabsOnceover::Group.new('classgroup', [class_a, class_b])
       t1 = PuppetlabsOnceover::Test.new('nodegroup', 'classgroup', {})
 
       deduped = PuppetlabsOnceover::Test.deduplicate([t1])

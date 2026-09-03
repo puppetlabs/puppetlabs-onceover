@@ -21,8 +21,8 @@ describe PuppetlabsOnceover::VendoredModules do
   end
 
   after do
-    FileUtils.remove_entry(tempdir) if File.exist?(tempdir)
-    FileUtils.remove_entry(spec_dir) if File.exist?(spec_dir)
+    FileUtils.rm_rf(tempdir)
+    FileUtils.rm_rf(spec_dir)
   end
 
   describe '#initialize' do

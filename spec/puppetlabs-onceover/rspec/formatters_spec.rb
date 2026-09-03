@@ -25,12 +25,12 @@ describe PuppetlabsOnceoverFormatter do
     metadata = {
       example_group: {
         description: factset,
-        parent_example_group: { description: role },
+        parent_example_group: { description: role }
       },
       execution_result: double('execution_result', exception: RuntimeError.new(raw_error)),
       description: description,
       file_path: file_path,
-      line_number: line_number,
+      line_number: line_number
     }
     double('example', metadata: metadata)
   end
@@ -156,7 +156,7 @@ describe PuppetlabsOnceoverFormatter do
     it 'attaches the list of failing factsets to each parsed error' do
       fails = [
         failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom'),
-        failure_double(role: 'role::foo', factset: 'using fact set windows-2019-x64', raw_error: 'boom'),
+        failure_double(role: 'role::foo', factset: 'using fact set windows-2019-x64', raw_error: 'boom')
       ]
       results = formatter.extract_failure_data(fails)
       expect(results.first[:factsets]).to eq(['centos-7-x86_64', 'windows-2019-x64'])
@@ -170,8 +170,8 @@ describe PuppetlabsOnceoverFormatter do
         failed_examples: [
           failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom one'),
           failure_double(role: 'role::foo', factset: 'using fact set windows-2019-x64', raw_error: 'boom two'),
-          failure_double(role: 'role::bar', factset: 'using fact set centos-7-x86_64', raw_error: 'boom three'),
-        ],
+          failure_double(role: 'role::bar', factset: 'using fact set centos-7-x86_64', raw_error: 'boom three')
+        ]
       )
 
       grouped = formatter.extract_failures(notification)
@@ -193,8 +193,8 @@ describe PuppetlabsOnceoverFormatter do
       notification = double(
         'notification',
         failed_examples: [
-          failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom'),
-        ],
+          failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom')
+        ]
       )
 
       formatter.dump_failures(notification)
@@ -212,7 +212,7 @@ describe PuppetlabsOnceoverFormatter do
   end
 
   describe 'color helper methods' do
-    %i[class_name black red green yellow blue magenta cyan white bold].each do |method|
+    [:class_name, :black, :red, :green, :yellow, :blue, :magenta, :cyan, :white, :bold].each do |method|
       it "##{method} wraps the given text" do
         expect(formatter.public_send(method, 'hello')).to be_a(String)
         expect(formatter.public_send(method, 'hello')).to include('hello')
@@ -229,9 +229,9 @@ describe PuppetlabsOnceoverFormatterParallel do
     metadata = {
       example_group: {
         description: factset,
-        parent_example_group: { description: role },
+        parent_example_group: { description: role }
       },
-      execution_result: double('execution_result', exception: RuntimeError.new(raw_error)),
+      execution_result: double('execution_result', exception: RuntimeError.new(raw_error))
     }
     double('example', metadata: metadata)
   end
@@ -271,7 +271,7 @@ describe PuppetlabsOnceoverFormatterParallel do
 
       notification = double(
         'notification',
-        failed_examples: [failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom')],
+        failed_examples: [failure_double(role: 'role::foo', factset: 'using fact set centos-7-x86_64', raw_error: 'boom')]
       )
 
       formatter.dump_failures(notification)
@@ -326,7 +326,7 @@ describe FailureCollector do
     allow(RSpec.configuration).to receive(:onceover_tempdir).and_return(tempdir)
   end
 
-  after { FileUtils.remove_entry(tempdir) if File.exist?(tempdir) }
+  after { FileUtils.rm_rf(tempdir) }
 
   describe '#initialize' do
     it 'touches a failures.out file in the onceover tempdir' do
@@ -345,8 +345,8 @@ describe FailureCollector do
           description: 'does a thing',
           execution_result: double('execution_result', exception: RuntimeError.new('kaboom')),
           file_path: '/spec/foo_spec.rb',
-          line_number: 12,
-        },
+          line_number: 12
+        }
       )
       failures = double('failures', failed_examples: [fe])
 
