@@ -141,14 +141,20 @@ describe PuppetlabsOnceover::VendoredModules do
     end
 
     it 'falls back to the latest supplied version when neither exact nor major-version matches exist' do
-      # Neither of these matches the current major version (8.x), and both
-      # are numerically higher than the desired 8.13.0, so the "use latest
-      # supplied" fallback should pick the highest of the two (11.0.0).
+      # Offset well above the current major version (the CI matrix runs this
+      # same spec against both puppet 8.x and 9.x -- hardcoding "9.0.0" would
+      # accidentally match the major-version-match branch instead of this
+      # fallback branch when the suite runs under puppet 9). Both fixtures
+      # stay numerically higher than the desired version either way, so the
+      # "use latest supplied" fallback should pick the highest of the two.
+      major = vm.instance_variable_get(:@puppet_major_version).to_s.to_i
+      lower = "#{major + 90}.0.0"
+      higher = "#{major + 91}.0.0"
       manual_dir = Dir.mktmpdir
-      touch_files(manual_dir, ["#{component}-puppet_agent-9.0.0.json", "#{component}-puppet_agent-11.0.0.json"])
+      touch_files(manual_dir, ["#{component}-puppet_agent-#{lower}.json", "#{component}-puppet_agent-#{higher}.json"])
       vm.instance_variable_set(:@manual_vendored_dir, manual_dir)
       result = vm.component_cache(component)
-      expect(result).to eq(File.join(manual_dir, "#{component}-puppet_agent-11.0.0.json"))
+      expect(result).to eq(File.join(manual_dir, "#{component}-puppet_agent-#{higher}.json"))
       FileUtils.remove_entry(manual_dir)
     end
 
