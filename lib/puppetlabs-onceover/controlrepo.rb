@@ -672,14 +672,15 @@ class PuppetlabsOnceover
     end
 
     def find_classname(filename)
-      file = File.new(filename, "r")
-      while (line = file.gets)
-        begin
-          if line =~ /^class (\w+(?:::\w+)*)/
-            return $1
+      File.open(filename, "r") do |file|
+        while (line = file.gets)
+          begin
+            if line =~ /^class (\w+(?:::\w+)*)/
+              return $1
+            end
+          rescue ArgumentError => e
+            logger.error "ignoring invalid line in file: #{filename} (#{e.message}) - line: '#{line}'"
           end
-        rescue ArgumentError => e
-          logger.error "ignoring invalid line in file: #{filename} (#{e.message}) - line: '#{line}'"
         end
       end
       return nil
