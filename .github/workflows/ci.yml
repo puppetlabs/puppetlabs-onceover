@@ -19,16 +19,16 @@ jobs:
       matrix:
         ruby_version:
           - "3.2"
+          - "4.0"
         include:
           - ruby_version: "3.2"
             puppet_gem_version: "~> 8.0"
+          - ruby_version: "4.0"
+            puppet_gem_version: "~> 9.0"
         runs_on:
           - "ubuntu-latest"
           - "macos-latest"
           - "ubuntu-24.04-arm"
-    # NOTE: no ruby 4.0 / puppet 9.0 lane yet -- the gemspec/Gemfile still
-    # hard-depend on openvox regardless of puppet_gem_version until CAT-2776
-    # flips the runtime dependency to puppet. Add that lane there, not here.
     # NOTE: windows-latest is a separate, bespoke job below, not part of this
     # matrix -- see that job for why.
     name: "spec (${{ matrix.runs_on }} ruby ${{ matrix.ruby_version }} | puppet ${{ matrix.puppet_gem_version }})"
@@ -48,15 +48,28 @@ jobs:
     # acceptance specs) are long enough that D:/a/puppetlabs-onceover/puppetlabs-onceover/...
     # crosses Windows' 260-char MAX_PATH without it -- confirmed by
     # reproduction, not assumed.
-    name: "spec (windows-latest ruby 3.2 | puppet ~> 8.0)"
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby_version:
+          - "3.2"
+          - "4.0"
+        include:
+          - ruby_version: "3.2"
+            puppet_gem_version: "~> 8.0"
+          - ruby_version: "4.0"
+            puppet_gem_version: "~> 9.0"
+    name: "spec (windows-latest ruby ${{ matrix.ruby_version }} | puppet ${{ matrix.puppet_gem_version }})"
     runs-on: "windows-latest"
     env:
-      PUPPET_GEM_VERSION: "~> 8.0"
+      PUPPET_GEM_VERSION: ${{ matrix.puppet_gem_version }}
+      PUPPET_FORGE_TOKEN: ${{ secrets.PUPPET_FORGE_TOKEN || secrets.PUPPET_FORGE_TOKEN_PUBLIC }}
+      BUNDLE_RUBYGEMS___PUPPETCORE__PUPPET__COM: "forge-key:${{ secrets.PUPPET_FORGE_TOKEN || secrets.PUPPET_FORGE_TOKEN_PUBLIC }}"
     steps:
       - uses: "actions/checkout@v4"
       - uses: "ruby/setup-ruby@v1"
         with:
-          ruby-version: "3.2"
+          ruby-version: ${{ matrix.ruby_version }}
           bundler-cache: true
       - name: "Enable Windows long paths"
         run: |
