@@ -46,8 +46,12 @@ describe 'rake_tasks.rb' do
       hiera_config = { defaults: { datadir: 'orig/data' } }
       repo = double('repo')
       allow(repo).to receive(:hiera_config).and_return(hiera_config)
-      allow(repo).to receive(:hiera_config_file).and_return('/some/repo/hiera.yaml')
-      allow(repo).to receive(:hiera_data).and_return('/some/repo/data')
+      # Use File.expand_path so these are real OS-native absolute paths on any
+      # platform (Windows Pathname#relative_path_from raises "different prefix"
+      # when comparing a bare '/some/repo'-style path against one that's been
+      # expanded to a drive-letter path).
+      allow(repo).to receive(:hiera_config_file).and_return(File.expand_path('/some/repo/hiera.yaml'))
+      allow(repo).to receive(:hiera_data).and_return(File.expand_path('/some/repo/data'))
       allow(repo).to receive(:hiera_config=)
       allow(PuppetlabsOnceover::Controlrepo).to receive(:new).and_return(repo)
 
