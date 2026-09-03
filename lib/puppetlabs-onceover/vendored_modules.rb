@@ -79,7 +79,7 @@ class PuppetlabsOnceover
         latest_tag = tags.first['name']
         {
           'url' => "https://github.com/puppetlabs/puppetlabs-#{mod_name}.git",
-          'ref' => "refs/tags/#{latest_tag}",
+          'ref' => "refs/tags/#{latest_tag}"
         }
       end
     end
