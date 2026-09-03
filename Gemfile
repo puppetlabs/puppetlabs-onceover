@@ -15,9 +15,9 @@ end
 group :development do
   gem 'cucumber'
   gem 'pry'
+  gem 'puppetlabs-syntax'
   gem 'rubocop'
   gem 'rubygems-tasks'
-  gem 'voxpupuli-test', '~> 14.0'
 end
 
 # Evaluate Gemfile.local if it exists
