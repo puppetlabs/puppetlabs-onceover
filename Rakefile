@@ -63,9 +63,9 @@ task :fixtures do
 end
 
 begin
-  require 'voxpupuli/test/rake'
+  require 'puppetlabs-syntax/tasks/puppetlabs-syntax'
 rescue LoadError
-  # the voxpupuli-test gem is optional
+  # the puppetlabs-syntax gem is optional
 end
 
 begin
@@ -83,4 +83,4 @@ else
   end
 end
 
-PuppetSyntax.exclude_paths = ['vendor/**/*', 'templates/**/*', 'spec/fixtures/**/*']
+PuppetlabsSyntax.exclude_paths = ['vendor/**/*', 'templates/**/*', 'spec/fixtures/**/*']
