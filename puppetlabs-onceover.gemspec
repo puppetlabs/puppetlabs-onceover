@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 
 $LOAD_PATH.unshift File.expand_path('lib', __dir__)
+require 'puppetlabs-onceover/version'
 
 Gem::Specification.new do |s| # rubocop:disable Gemspec/RequireMFA
   s.name        = "puppetlabs-onceover"
-  s.version     = "5.0.3"
+  s.version     = PuppetlabsOnceover::VERSION
   s.authors     = ['Puppet, Inc.']
   s.email       = ['modules-team@puppet.com']
   s.homepage    = "https://github.com/puppetlabs/puppetlabs-onceover"
