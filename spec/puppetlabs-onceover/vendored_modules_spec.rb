@@ -141,15 +141,16 @@ describe PuppetlabsOnceover::VendoredModules do
     end
 
     it 'falls back to the latest supplied version when neither exact nor major-version matches exist' do
-      # Offset well above the current major version (the CI matrix runs this
-      # same spec against both puppet 8.x and 9.x -- hardcoding "9.0.0" would
+      # Fixed, deliberately-unrealistic majors (the CI matrix runs this same
+      # spec against both puppet 8.x and 9.x, so hardcoding "9.0.0" would
       # accidentally match the major-version-match branch instead of this
-      # fallback branch when the suite runs under puppet 9). Both fixtures
-      # stay numerically higher than the desired version either way, so the
-      # "use latest supplied" fallback should pick the highest of the two.
-      major = vm.instance_variable_get(:@puppet_major_version).to_s.to_i
-      lower = "#{major + 90}.0.0"
-      higher = "#{major + 91}.0.0"
+      # fallback branch when the suite runs under puppet 9). The production
+      # major-version check is a plain substring match
+      # (`s["...puppet_agent-#{major}"]`), so "9#{major}.0.0"-style values
+      # are NOT safe either -- "99.0.0" still contains "...puppet_agent-9".
+      # 500/501 can't collide with any realistic puppet major version.
+      lower = "500.0.0"
+      higher = "501.0.0"
       manual_dir = Dir.mktmpdir
       touch_files(manual_dir, ["#{component}-puppet_agent-#{lower}.json", "#{component}-puppet_agent-#{higher}.json"])
       vm.instance_variable_set(:@manual_vendored_dir, manual_dir)
