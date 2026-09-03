@@ -15,6 +15,7 @@ end
 group :development do
   gem 'cucumber'
   gem 'pry'
+  gem 'puppetlabs-syntax'
   gem 'rubocop'
   gem 'rubygems-tasks'
 end

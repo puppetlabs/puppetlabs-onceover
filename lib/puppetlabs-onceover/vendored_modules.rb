@@ -22,6 +22,18 @@ require 'puppetlabs-onceover/logger'
 
 class PuppetlabsOnceover
   class VendoredModules
+    # The "core type" modules puppet-agent vendors (cron, host, mount, etc.).
+    # This set is stable and rarely changes -- what varies release to
+    # release is each module's *version*, not the list of modules. Each is
+    # its own actively-maintained puppetlabs repo (confirmed: all ten pushed
+    # within the last year, well ahead of either OpenVox's or the public
+    # puppet-agent mirror's data), so there's no need to go through any
+    # third-party component manifest to find out what to vendor.
+    CORE_MODULES = %w[
+      augeas_core cron_core host_core mount_core scheduled_task
+      selinux_core sshkeys_core yumrepo_core zfs_core zone_core
+    ].freeze
+
     attr_reader :vendored_references, :missing_vendored
 
     def initialize(opts = {})
@@ -46,25 +58,29 @@ class PuppetlabsOnceover
       #   control-repo/spec/vendored_modules/<component>-puppet_agent-<agent version>.json
       @manual_vendored_dir = File.join(@repo.spec_dir, 'vendored_modules')
 
-      # Get the entire file tree of the puppetlabs/puppet-agent repository
-      # https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28#get-a-tree
-      puppet_agent_tree = query_or_cache(
-        "https://api.github.com/repos/OpenVoxProject/openvox-agent/git/trees/#{@puppet_version}",
-        { recursive: true },
-        component_cache('repo_tree'),
-      )
-      # Get only the module-puppetlabs-<something>_core.json component files
-      vendored_components =  puppet_agent_tree['tree'].select { |file| %r{configs/components/module-puppetlabs-\w+\.json}.match(file['path']) }
-      # Get the contents of each component file
-      # https://docs.github.com/en/rest/git/blobs?apiVersion=2022-11-28#get-a-blob
-      @vendored_references = vendored_components.map do |component|
-        mod_slug = component['path'].match(/.*(puppetlabs-\w+).json$/)[1]
-        mod_name = mod_slug.match(/puppetlabs-(\w+)/)[1]
-        query_or_cache(
-          component['url'],
+      # Resolve each core module's current release directly from its own
+      # puppetlabs-owned repo (CAT-2777). Previously this went through a
+      # component manifest fetched from an agent repo's git tree -- first
+      # OpenVoxProject/openvox-agent (a live functional dependency on
+      # OpenVox this whole re-ownership program exists to eliminate, and
+      # whose manifest data pointed at openvoxproject-org module forks, not
+      # puppetlabs' own), then puppetlabs/puppet-agent was considered and
+      # rejected (its public mirror last tagged 8.10.0, stale relative to
+      # any puppet version this gem tests against). Neither is needed: the
+      # module list is stable (see CORE_MODULES) and each module's own repo
+      # is the authoritative source for its own latest version.
+      # https://docs.github.com/en/rest/repos/repos#list-repository-tags
+      @vendored_references = CORE_MODULES.map do |mod_name|
+        tags = query_or_cache(
+          "https://api.github.com/repos/puppetlabs/puppetlabs-#{mod_name}/tags",
           nil,
           component_cache(mod_name),
         )
+        latest_tag = tags.first['name']
+        {
+          'url' => "https://github.com/puppetlabs/puppetlabs-#{mod_name}.git",
+          'ref' => "refs/tags/#{latest_tag}"
+        }
       end
     end
 

@@ -2,7 +2,6 @@ require 'rubygems/tasks'
 require 'rspec/core/rake_task'
 require 'cucumber/rake/task'
 require 'puppet/version'
-require 'voxpupuli/test/rake'
 Gem::Tasks.new
 
 def windows?
@@ -64,9 +63,9 @@ task :fixtures do
 end
 
 begin
-  require 'voxpupuli/test/rake'
+  require 'puppetlabs-syntax/tasks/puppetlabs-syntax'
 rescue LoadError
-  # the voxpupuli-test gem is optional
+  # the puppetlabs-syntax gem is optional
 end
 
 begin
@@ -77,11 +76,11 @@ rescue LoadError
 else
   GitHubChangelogGenerator::RakeTask.new :changelog do |config|
     config.exclude_labels = %w[duplicate question invalid wontfix wont-fix skip-changelog github_actions]
-    config.user = 'voxpupuli'
-    config.project = 'onceover'
+    config.user = 'puppetlabs'
+    config.project = 'puppetlabs-onceover'
     gem_version = Gem::Specification.load("#{config.project}.gemspec").version
     config.future_release = "v#{gem_version}"
   end
 end
 
-PuppetSyntax.exclude_paths = ['vendor/**/*', 'templates/**/*', 'spec/fixtures/**/*']
+PuppetlabsSyntax.exclude_paths = ['vendor/**/*', 'templates/**/*', 'spec/fixtures/**/*']
