@@ -20,6 +20,6 @@ This version is a pure refactor of the original gem into a new namespace.  For m
 - (CAT-2775) Rename runtime namespace: Onceover -> PuppetlabsOnceover (Gate 3) [#6](https://github.com/puppetlabs/puppetlabs-onceover/pull/6) ([actowery](https://github.com/actowery))
 - (CAT-2774) Rename gem publisher identity: onceover -> puppetlabs-onceover (Gate 2) [#5](https://github.com/puppetlabs/puppetlabs-onceover/pull/5) ([actowery](https://github.com/actowery))
 
-## [v5.0.2]
+## [v5.0.2](https://github.com/puppetlabs/puppetlabs-onceover/tree/v5.0.2) - 2025-10-10
 
 For all previous changes see [ARCHIVE.md](ARCHIVE.md)
