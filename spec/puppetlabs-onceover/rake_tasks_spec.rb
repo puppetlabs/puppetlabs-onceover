@@ -87,17 +87,19 @@ describe 'rake_tasks.rb' do
   end
 
   describe 'generate_onceover_yaml' do
-    it 'reads the controlrepo and attempts to render the controlrepo.yaml.erb template' do
-      repo = double('repo')
+    it 'reads the controlrepo and renders the controlrepo.yaml.erb template' do
+      repo = double('repo', roles: %w[role::web role::db], facts_files: ['/some/repo/facts/centos7.json', '/some/repo/facts/Windows_Server-2019.json'])
       allow(PuppetlabsOnceover::Controlrepo).to receive(:new).and_return(repo)
 
-      # NOTE: the bundled erb gem (6.0.7, from Ruby 3.3.12) no longer accepts
-      # ERB.new's legacy positional (safe_level, trim_mode) arguments, which
-      # rake_tasks.rb still passes. This is a pre-existing incompatibility in
-      # production code, not something introduced by this test. We assert the
-      # task reaches and exercises that ERB.new call (line coverage), rather
-      # than papering over the ArgumentError it currently raises in this Ruby.
-      expect { Rake::Task['generate_onceover_yaml'].invoke }.to raise_error(ArgumentError)
+      # ERB.new's legacy positional (safe_level, trim_mode) arguments were
+      # removed in the bundled erb gem (6.0.7+, Ruby 4.0) -- rake_tasks.rb
+      # used to pass them positionally, which raised ArgumentError on that
+      # Ruby before this fix. Now that it's fixed (keyword trim_mode:), this
+      # asserts the template actually renders real content from the repo
+      # double, not just that it "reaches" the call.
+      expect { Rake::Task['generate_onceover_yaml'].invoke }.to output(
+        a_string_including('role::web', 'role::db', 'centos7', 'Windows_Server-2019', 'Windows_Server-2019')
+      ).to_stdout
     end
   end
 
@@ -117,12 +119,16 @@ describe 'rake_tasks.rb' do
       allow(Net::HTTP).to receive(:new).and_return(http_double)
       allow(http_double).to receive(:get).and_return(response)
 
-      # See the note in the generate_onceover_yaml spec above: the bundled
-      # erb 6.0.7 no longer accepts ERB.new's legacy positional arguments,
-      # so this task raises ArgumentError once it reaches its own ERB.new
-      # call further down. We assert the "HOSTS:" header and 404 branch
-      # (comment_out = true) execute first, covering those lines.
-      expect { Rake::Task['generate_nodesets'].invoke }.to raise_error(ArgumentError).and output(/HOSTS:/).to_stdout
+      # This deprecated task (Beaker removed) has a second, deeper,
+      # pre-existing bug beyond the ERB.new Ruby-4.0 incompatibility fixed
+      # elsewhere: nodeset.yaml.erb expects a `hosts_hash` local (and a
+      # `prefix` local) that the task body never actually defines -- it
+      # builds flat locals (node_name/boxname/platform/url/comment_out)
+      # instead. Out of scope to redesign a deprecated task here; asserting
+      # the real resulting error (and that execution reaches it, covering
+      # the "HOSTS:" header and 404 branch first) rather than the old,
+      # now-fixed ArgumentError.
+      expect { Rake::Task['generate_nodesets'].invoke }.to raise_error(NameError, /hosts_hash/).and output(/HOSTS:/).to_stdout
     end
 
     it 'writes a nodeset entry using the virtualbox provider url when the box lookup succeeds' do
@@ -150,8 +156,8 @@ describe 'rake_tasks.rb' do
 
       # As above: covers the successful (non-404) lookup branch, including
       # the virtualbox provider url extraction, before hitting the same
-      # pre-existing ERB.new incompatibility.
-      expect { Rake::Task['generate_nodesets'].invoke }.to raise_error(ArgumentError).and output(/HOSTS:/).to_stdout
+      # pre-existing hosts_hash/prefix bug described above.
+      expect { Rake::Task['generate_nodesets'].invoke }.to raise_error(NameError, /hosts_hash/).and output(/HOSTS:/).to_stdout
     end
   end
 
