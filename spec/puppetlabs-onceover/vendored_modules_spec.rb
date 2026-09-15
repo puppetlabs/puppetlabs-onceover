@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'tmpdir'
 require 'fileutils'
 require 'multi_json'
-require 'net/http'
+require 'git'
 require 'puppetlabs-onceover/controlrepo' # pulls in `include PuppetlabsOnceover::Logger` at top-level
 require 'puppetlabs-onceover/vendored_modules'
 
@@ -50,7 +50,7 @@ describe PuppetlabsOnceover::VendoredModules do
       it 'creates it via FileUtils.mkdir_p' do
         cachedir = File.join(tempdir, 'vendored_modules')
         expect(File.directory?(cachedir)).to be false
-        allow_any_instance_of(described_class).to receive(:github_get).and_return([{ 'name' => 'v9.9.9' }])
+        allow_any_instance_of(described_class).to receive(:remote_tags).and_return([{ 'name' => 'v9.9.9' }])
         described_class.new(repo: repo_double)
         expect(File.directory?(cachedir)).to be true
       end
@@ -67,9 +67,9 @@ describe PuppetlabsOnceover::VendoredModules do
     end
 
     context 'when opts[:force_update] is true' do
-      it 'always calls github_get, ignoring any existing cache' do
+      it 'always calls remote_tags, ignoring any existing cache' do
         populate_cache(File.join(tempdir, 'vendored_modules'))
-        expect_any_instance_of(described_class).to receive(:github_get).at_least(:once).and_return([{ 'name' => 'v5.0.0' }])
+        expect_any_instance_of(described_class).to receive(:remote_tags).at_least(:once).and_return([{ 'name' => 'v5.0.0' }])
         described_class.new(repo: repo_double, force_update: true)
       end
     end
@@ -223,67 +223,58 @@ describe PuppetlabsOnceover::VendoredModules do
     it 'reads from the cache file when it already exists' do
       cache_file = File.join(Dir.mktmpdir, 'cached.json')
       File.write(cache_file, MultiJson.dump([{ 'name' => 'v1.0.0' }]))
-      expect(vm).not_to receive(:github_get)
-      result = vm.query_or_cache('https://api.github.com/repos/puppetlabs/x/tags', nil, cache_file)
+      expect(vm).not_to receive(:remote_tags)
+      result = vm.query_or_cache('https://github.com/puppetlabs/x.git', cache_file)
       expect(result).to eq([{ 'name' => 'v1.0.0' }])
     end
 
-    it 'calls github_get and writes the cache when the file does not exist' do
+    it 'calls remote_tags and writes the cache when the file does not exist' do
       cache_file = File.join(Dir.mktmpdir, 'missing.json')
-      allow(vm).to receive(:github_get).and_return([{ 'name' => 'v2.0.0' }])
-      result = vm.query_or_cache('https://api.github.com/repos/puppetlabs/x/tags', nil, cache_file)
+      allow(vm).to receive(:remote_tags).and_return([{ 'name' => 'v2.0.0' }])
+      result = vm.query_or_cache('https://github.com/puppetlabs/x.git', cache_file)
       expect(result).to eq([{ 'name' => 'v2.0.0' }])
       expect(File.exist?(cache_file)).to be true
       expect(MultiJson.load(File.read(cache_file))).to eq([{ 'name' => 'v2.0.0' }])
     end
   end
 
-  describe '#github_get' do
+  describe '#remote_tags' do
     subject(:vm) do
       populate_cache(File.join(tempdir, 'vendored_modules'))
       described_class.new(repo: repo_double)
     end
 
-    it 'returns the parsed json body on a 200 response' do
-      response = Net::HTTPOK.new('1.1', '200', 'OK')
-      def response.body
-        MultiJson.dump([{ 'name' => 'v3.0.0' }])
-      end
-      http = instance_double(Net::HTTP)
-      allow(Net::HTTP).to receive(:new).and_return(http)
-      allow(http).to receive(:use_ssl=)
-      allow(http).to receive(:request).and_return(response)
+    it 'returns tags sorted newest version first' do
+      allow(Git).to receive(:ls_remote).and_return(
+        'tags' => {
+          'v1.0.0' => { ref: 'refs/tags/v1.0.0', sha: 'a' },
+          'v2.0.1' => { ref: 'refs/tags/v2.0.1', sha: 'b' },
+          'v2.0.1^{}' => { ref: 'refs/tags/v2.0.1^{}', sha: 'c' },
+          '1.5.0' => { ref: 'refs/tags/1.5.0', sha: 'd' }
+        }
+      )
 
-      result = vm.github_get('https://api.github.com/repos/puppetlabs/puppetlabs-augeas_core/tags', nil)
-      expect(result).to eq([{ 'name' => 'v3.0.0' }])
+      result = vm.remote_tags('https://github.com/puppetlabs/puppetlabs-augeas_core.git')
+      expect(result).to eq([{ 'name' => 'v2.0.1' }, { 'name' => '1.5.0' }, { 'name' => 'v1.0.0' }])
     end
 
-    it 'passes along query params when given' do
-      response = Net::HTTPOK.new('1.1', '200', 'OK')
-      def response.body
-        MultiJson.dump([{ 'name' => 'v4.0.0' }])
-      end
-      http = instance_double(Net::HTTP)
-      allow(Net::HTTP).to receive(:new).and_return(http)
-      allow(http).to receive(:use_ssl=)
-      allow(http).to receive(:request).and_return(response)
+    it 'skips non-version-shaped tags' do
+      allow(Git).to receive(:ls_remote).and_return(
+        'tags' => {
+          'v1.0.0' => { ref: 'refs/tags/v1.0.0', sha: 'a' },
+          'not-a-version' => { ref: 'refs/tags/not-a-version', sha: 'b' }
+        }
+      )
 
-      result = vm.github_get('https://api.github.com/repos/puppetlabs/puppetlabs-augeas_core/tags', { 'per_page' => '1' })
-      expect(result).to eq([{ 'name' => 'v4.0.0' }])
+      result = vm.remote_tags('https://github.com/puppetlabs/puppetlabs-augeas_core.git')
+      expect(result).to eq([{ 'name' => 'v1.0.0' }])
     end
 
-    it 'raises with the ratelimit headers on a non-200 response' do
-      response = Net::HTTPForbidden.new('1.1', '403', 'Forbidden')
-      def response.to_hash
-        { 'x-ratelimit-remaining' => ['0'] }
-      end
-      http = instance_double(Net::HTTP)
-      allow(Net::HTTP).to receive(:new).and_return(http)
-      allow(http).to receive(:use_ssl=)
-      allow(http).to receive(:request).and_return(response)
+    it 'returns an empty array when the remote has no tags' do
+      allow(Git).to receive(:ls_remote).and_return({})
 
-      expect { vm.github_get('https://api.github.com/repos/puppetlabs/puppetlabs-augeas_core/tags', nil) }
-        .to raise_error(/403 Forbidden/)
+      result = vm.remote_tags('https://github.com/puppetlabs/puppetlabs-augeas_core.git')
+      expect(result).to eq([])
     end
   end
 

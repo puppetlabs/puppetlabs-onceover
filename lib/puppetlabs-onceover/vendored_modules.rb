@@ -1,6 +1,5 @@
 require 'puppet/version'
-require 'net/http'
-require 'uri'
+require 'git'
 require 'multi_json'
 require 'r10k/module_loader/puppetfile'
 require 'puppetlabs-onceover/logger'
@@ -69,16 +68,18 @@ class PuppetlabsOnceover
       # any puppet version this gem tests against). Neither is needed: the
       # module list is stable (see CORE_MODULES) and each module's own repo
       # is the authoritative source for its own latest version.
-      # https://docs.github.com/en/rest/repos/repos#list-repository-tags
+      #
+      # Tags are read via the git protocol (git ls-remote) rather than
+      # GitHub's REST API: the REST API's unauthenticated rate limit
+      # (60 req/hr) is shared across every GitHub-hosted Actions runner IP,
+      # so 10 sequential lookups per test run reliably exhausted it in CI.
+      # git's smart-HTTP protocol has no equivalent per-hour cap.
       @vendored_references = CORE_MODULES.map do |mod_name|
-        tags = query_or_cache(
-          "https://api.github.com/repos/puppetlabs/puppetlabs-#{mod_name}/tags",
-          nil,
-          component_cache(mod_name),
-        )
+        repo_url = "https://github.com/puppetlabs/puppetlabs-#{mod_name}.git"
+        tags = query_or_cache(repo_url, component_cache(mod_name))
         latest_tag = tags.first['name']
         {
-          'url' => "https://github.com/puppetlabs/puppetlabs-#{mod_name}.git",
+          'url' => repo_url,
           'ref' => "refs/tags/#{latest_tag}"
         }
       end
@@ -153,40 +154,36 @@ class PuppetlabsOnceover
       end
     end
 
-    # Return json from a query whom caches, or from the cache to avoid spamming github
-    def query_or_cache(url, params, filepath)
+    # Return tag data from a query whom caches, or from the cache to avoid
+    # re-querying the remote on every run
+    def query_or_cache(repo_url, filepath)
       if (File.exist? filepath) && (@force_update == false)
         logger.debug "Using cache: #{filepath}"
         json = read_json_dump(filepath)
       else
-        logger.debug "Making GET request to: #{url}"
-        json = github_get(url, params)
+        logger.debug "Listing tags for: #{repo_url}"
+        json = remote_tags(repo_url)
         logger.debug "Caching response to: #{filepath}"
         write_json_dump(filepath, json)
       end
       json
     end
 
-    # Given a github url and optional query parameters, return the parsed json body
-    def github_get(url, params)
-      uri = URI.parse(url)
-      uri.query = URI.encode_www_form(params) if params
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == 'https')
-      request = Net::HTTP::Get.new(uri.request_uri)
-      request['Accept'] = 'application/vnd.github.raw+json'
-      request['X-GitHub-Api-Version'] = '2022-11-28'
-      response = http.request(request)
+    # Given a git remote url, return its tags as [{ 'name' => tag }, ...],
+    # sorted newest version first (matches the shape/ordering the old
+    # GitHub REST tags API returned, so callers can keep using .first).
+    def remote_tags(repo_url)
+      refs = Git.ls_remote(repo_url, refs: true)['tags'] || {}
+      versions = refs.keys.filter_map do |name|
+        next if name.end_with?('^{}') # annotated-tag dereference entries
 
-      case response
-      when Net::HTTPOK # 200
-        MultiJson.load(response.body)
-      else
-        # Expose the ratelimit response headers
-        # https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#checking-the-status-of-your-rate-limit
-        ratelimit_headers = response.to_hash.select { |k, _v| k =~ /x-ratelimit.*/ }
-        raise "#{response.code} #{response.message} #{ratelimit_headers}"
+        begin
+          [Gem::Version.new(name.delete_prefix('v')), name]
+        rescue ArgumentError
+          nil # skip non-version-shaped tags
+        end
       end
+      versions.sort_by(&:first).reverse.map { |_version, name| { 'name' => name } }
     end
 
     # Returns parsed json of file
