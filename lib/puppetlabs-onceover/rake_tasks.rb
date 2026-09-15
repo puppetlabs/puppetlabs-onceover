@@ -40,7 +40,7 @@ task :generate_onceover_yaml do
   repo = PuppetlabsOnceover::Controlrepo.new
   template_dir = File.expand_path('../../templates', File.dirname(__FILE__))
   onceover_yaml_template = File.read(File.expand_path('./controlrepo.yaml.erb', template_dir))
-  puts ERB.new(onceover_yaml_template, nil, '-').result(binding)
+  puts ERB.new(onceover_yaml_template, trim_mode: '-').result(binding)
 end
 
 task :generate_nodesets do
@@ -81,7 +81,7 @@ task :generate_nodesets do
     # Use an ERB template
     template_dir = File.expand_path('../../templates', File.dirname(__FILE__))
     fixtures_template = File.read(File.expand_path('./nodeset.yaml.erb', template_dir))
-    puts ERB.new(fixtures_template, nil, '-').result(binding)
+    puts ERB.new(fixtures_template, trim_mode: '-').result(binding)
   end
 end
 
