@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v5.0.5](https://github.com/puppetlabs/puppetlabs-onceover/tree/v5.0.5) - 2026-09-15
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-onceover/compare/v5.0.4...v5.0.5)
+
+### Other
+
+- Replace GitHub REST tag lookups with git ls-remote to fix rate-limit CI failures [#28](https://github.com/puppetlabs/puppetlabs-onceover/pull/28) ([actowery](https://github.com/actowery))
+- Pin json < 3.0 to fix r10k module deploy arity error [#27](https://github.com/puppetlabs/puppetlabs-onceover/pull/27) ([actowery](https://github.com/actowery))
+- Fix ERB.new calls broken on Ruby 4.0 (rake_tasks.rb) [#26](https://github.com/puppetlabs/puppetlabs-onceover/pull/26) ([actowery](https://github.com/actowery))
+- Pin facter to Puppetcore, fix PUPPET_FORGE_TOKEN truthiness bug [#25](https://github.com/puppetlabs/puppetlabs-onceover/pull/25) ([actowery](https://github.com/actowery))
+
 ## [v5.0.4](https://github.com/puppetlabs/puppetlabs-onceover/tree/v5.0.4) - 2026-09-03
 
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-onceover/compare/v5.0.3...v5.0.4)
