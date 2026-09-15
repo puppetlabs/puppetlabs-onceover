@@ -23,6 +23,16 @@ gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 8', source: gemsource_puppetcore
 # Puppet on Ruby 3.3 / 3.4 has some missing dependencies
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
+# json 3.0 made JSON.parse keyword-only (dropped the legacy positional-hash
+# opts argument). faraday's JSON response middleware
+# (Faraday::Response::Json#parse) still calls `decoder.public_send(method,
+# body, @parser_options || {})` positionally, so with json ~> 3.0 every
+# Forge/HTTP JSON response r10k parses raises
+# `wrong number of arguments (given 2, expected 1)`. Pin to the last
+# compatible major until faraday releases a fix for json 3.0's new
+# signature.
+gem 'json', '< 3.0'
+
 # Windows platform runtime deps. The published puppet/openvox rubygems.org
 # artefacts are built on Linux and guard `ffi` / `win32ole` with build-host
 # platform checks, so those deps never make it into the Linux-published
